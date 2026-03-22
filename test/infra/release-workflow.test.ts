@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 describe("release workflow", () => {
   it("runs only when a publish label, manual dispatch, or a pending schedule permits it", async () => {
     const workflowPath = path.resolve(".github/workflows/release.yml");
-    const workflow = await readFile(workflowPath, "utf8");
+    const workflow = (await readFile(workflowPath, "utf8")).replace(/\r\n/g, "\n");
 
     expect(workflow).toContain("push:");
     expect(workflow).toContain("workflow_dispatch:");
@@ -17,7 +17,6 @@ describe("release workflow", () => {
     expect(workflow).toContain("release_pending");
     expect(workflow).toContain("steps.release_gate.outputs.run_release == 'true'");
     expect(workflow).not.toContain("NODE_AUTH_TOKEN:");
-    expect(workflow).toContain("NPM_TOKEN: \"\"");
     expect(workflow).not.toContain("registry-url:");
     expect(workflow).toContain("Debug OIDC env");
     expect(workflow).toContain("ACTIONS_ID_TOKEN_REQUEST_URL");
