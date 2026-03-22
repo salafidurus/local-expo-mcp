@@ -124,7 +124,7 @@ jobs:
           if gh pr view release/next --json number >/dev/null 2>&1; then
             gh pr edit release/next --title "$title" --body-file release-pr-body.md
           else
-            gh pr create --base main --head release/next --title "$title" --body-file release-pr-body.md --label release
+            gh pr create --base main --head release/next --title "$title" --body-file release-pr-body.md
           fi
 
   publish_release:
