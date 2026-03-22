@@ -1,0 +1,53 @@
+{
+  "name": "local-expo-mcp",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "bin": {
+    "local-expo-mcp": "./dist/server.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:windows": "vitest run --config vitest.windows.config.ts",
+    "test:live": "vitest run --config vitest.live.config.ts",
+    "test:live:windows": "vitest run --config vitest.live-windows.config.ts",
+    "test:acceptance": "bunx vitest run && bunx vitest run --config vitest.windows.config.ts && bunx vitest run --config vitest.live.config.ts && bunx vitest run --config vitest.live-windows.config.ts",
+    "release": "semantic-release",
+    "commitlint": "commitlint --from HEAD~1 --to HEAD"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "expo-mcp": "^0.2.4",
+    "mobile-mcp": "0.0.7",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6",
+    "@semantic-release/npm": "^12.0.2",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "@types/node": "^22.0.0",
+    "semantic-release": "^24.2.3",
+    "tsx": "^4.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^2.0.0",
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0"
+  }
+}

@@ -1,0 +1,8 @@
+SyntaxError: C:\dev\app\src\broken.tsx: Unexpected token, expected "," (7:14)
+
+   5 | export function Broken() {
+   6 |   return (
+>  7 |     <Text>{value</Text>
+     |              ^
+   8 |   );
+   9 | }

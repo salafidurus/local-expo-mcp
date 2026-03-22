@@ -1,0 +1,11 @@
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:checkDebugAarMetadata'.
+> Could not resolve all files for configuration ':app:debugRuntimeClasspath'.
+   > Could not resolve com.facebook.react:react-android:0.76.0.
+     Required by:
+         project :app
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
