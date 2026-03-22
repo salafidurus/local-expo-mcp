@@ -275,9 +275,11 @@ If you are working inside this repo, use the validation guidance in [AGENT.md](A
 This repo includes:
 - CI for install, commitlint, tests, and build
 - semantic-release driven changelog and npm publishing
-- label-driven release automation for PRs labeled `publish`
+- push-driven release automation that checks whether the merged PR for a `main` commit carried the `publish` label
 - stale publish automation when the package has not been published in the last 7 days and a release is pending
 - Dependabot for npm and GitHub Actions updates
+
+Manual dispatch still works for maintainers when a publish should be forced.
 
 ## Troubleshooting
 

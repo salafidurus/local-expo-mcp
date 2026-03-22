@@ -3,17 +3,19 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("release workflows", () => {
-  it("publishes on merged PRs that carry the publish label", async () => {
+  it("publishes from main pushes only when the merged PR carried the publish label", async () => {
     const workflowPath = path.resolve(".github/workflows/release.yml");
     const workflow = await readFile(workflowPath, "utf8");
 
-    expect(workflow).toContain("pull_request_target:");
-    expect(workflow).toContain("types:");
-    expect(workflow).toContain("- closed");
-    expect(workflow).toContain("contains(github.event.pull_request.labels.*.name, 'publish')");
+    expect(workflow).toContain("push:");
+    expect(workflow).toContain("branches:");
+    expect(workflow).toContain("- main");
     expect(workflow).toContain("workflow_dispatch:");
-    expect(workflow).toContain("github.event.pull_request.merged == true");
-    expect(workflow).toContain("contains(github.event.pull_request.labels.*.name, 'publish')");
+    expect(workflow).not.toContain("pull_request_target:");
+    expect(workflow).toContain("gh api");
+    expect(workflow).toContain("commits/${{ github.sha }}/pulls");
+    expect(workflow).toContain("publish_label=true");
+    expect(workflow).toContain("steps.publish_gate.outputs.publish_label == 'true'");
     expect(workflow).toContain("bun run release");
     expect(workflow).toContain("NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}");
   });
