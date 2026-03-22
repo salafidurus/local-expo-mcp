@@ -27,7 +27,8 @@ describe("package metadata", () => {
       provenance: true
     });
     expect(packageJson.devDependencies?.["semantic-release"]).toBeDefined();
-    expect(packageJson.devDependencies?.["@semantic-release/npm"]).toBeDefined();
+    expect(packageJson.devDependencies?.["@semantic-release/npm"]).toBeUndefined();
+    expect(packageJson.devDependencies?.["@semantic-release/exec"]).toBeDefined();
     expect(packageJson.devDependencies?.["@semantic-release/github"]).toBeDefined();
     expect(packageJson.devDependencies?.["@commitlint/cli"]).toBeDefined();
     expect(packageJson.devDependencies?.["@commitlint/config-conventional"]).toBeDefined();
