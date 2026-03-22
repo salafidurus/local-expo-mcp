@@ -1,18 +1,13 @@
 import { readdir } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("build output", () => {
   it("does not emit tests or vitest config files into dist", async () => {
     const distPath = path.resolve("dist");
-    try {
-      await readdir(distPath);
-    } catch {
-      execFileSync("bun", ["run", "build"], { stdio: "inherit" });
-    }
-
-    const entries = await readdir(distPath);
+    const entries = await readdir(distPath).catch(() => {
+      throw new Error("dist directory is missing—please run `bun run build` before this test");
+    });
 
     expect(entries).not.toContain("test");
     expect(entries).not.toContain("vitest.config.js");
