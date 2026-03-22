@@ -6,7 +6,7 @@ const limitSchema = z.number().int().min(1).max(1000).optional();
 const optionalDeviceIdSchema = z.string().min(1).optional();
 const appIdSchema = z.string().min(1);
 
-export const toolSchemas = {
+export const toolSchemas: Record<string, z.ZodSchema> = {
   project_inspect: z.object({
     projectRoot: projectRootSchema
   }).strict(),
