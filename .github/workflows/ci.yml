@@ -23,7 +23,12 @@ jobs:
         with:
           bun-version: 1.3.11
 
+      - name: Install dependencies for Dependabot
+        if: github.actor == 'dependabot[bot]'
+        run: bun install
+
       - name: Install dependencies
+        if: github.actor != 'dependabot[bot]'
         run: bun install --frozen-lockfile
 
       - name: Run commitlint for pull requests
