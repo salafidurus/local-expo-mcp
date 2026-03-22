@@ -3,10 +3,15 @@ import { createAndroidRunHandler } from "../tools/android-run.js";
 import { createDevServerAttachHandler } from "../tools/dev-server-attach.js";
 import { createDeviceAppLaunchHandler } from "../tools/device-app-launch.js";
 import { createDeviceAppTerminateHandler } from "../tools/device-app-terminate.js";
+import { createDeviceDumpUiHandler } from "../tools/device-dump-ui.js";
 import { createDeviceForegroundAppHandler } from "../tools/device-foreground-app.js";
+import { createDeviceKeyPressHandler } from "../tools/device-key-press.js";
 import { createDeviceListHandler } from "../tools/device-list.js";
 import { createDeviceLogsRecentHandler } from "../tools/device-logs-recent.js";
 import { createDeviceScreenshotHandler } from "../tools/device-screenshot.js";
+import { createDeviceSwipeHandler } from "../tools/device-swipe.js";
+import { createDeviceTapHandler } from "../tools/device-tap.js";
+import { createDeviceTypeTextHandler } from "../tools/device-type-text.js";
 import { createMetroErrorsRecentHandler } from "../tools/metro-errors-recent.js";
 import { createMetroLogsRecentHandler } from "../tools/metro-logs-recent.js";
 import { createMetroRestartHandler } from "../tools/metro-restart.js";
@@ -30,6 +35,11 @@ export function createToolRegistry(context: AppContext) {
     device_list: createDeviceListHandler(context),
     device_logs_recent: createDeviceLogsRecentHandler(context),
     device_screenshot: createDeviceScreenshotHandler(context),
+    device_dump_ui: createDeviceDumpUiHandler(context),
+    device_tap: createDeviceTapHandler(context),
+    device_swipe: createDeviceSwipeHandler(context),
+    device_type_text: createDeviceTypeTextHandler(context),
+    device_key_press: createDeviceKeyPressHandler(context),
     device_app_launch: createDeviceAppLaunchHandler(context),
     device_app_terminate: createDeviceAppTerminateHandler(context),
     device_foreground_app: createDeviceForegroundAppHandler(context),

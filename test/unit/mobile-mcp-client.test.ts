@@ -236,4 +236,102 @@ describe("createMobileMcpIntegration", () => {
     expect(createTransport).toHaveBeenCalledTimes(2);
   });
 
+  it("forwards dump_ui, tap, swipe, type, and key press through hidden mobile-mcp", async () => {
+    const connect = vi.fn(async () => undefined);
+    const callTool = vi
+      .fn()
+      .mockResolvedValueOnce({ content: [{ type: "text", text: "init" }] })
+      .mockResolvedValueOnce({
+        content: [{
+          type: "text",
+          text: '<hierarchy><node text="Login" content-desc="Login button" resource-id="btn-login" class="android.widget.Button" clickable="true" enabled="true" bounds="[0,0][100,100]" /></hierarchy>'
+        }]
+      })
+      .mockResolvedValueOnce({ content: [{ type: "text", text: "Tapped at (10, 20)" }] })
+      .mockResolvedValueOnce({ content: [{ type: "text", text: "Swiped from (0, 0) to (100, 200)" }] })
+      .mockResolvedValueOnce({ content: [{ type: "text", text: "Typed: salaam" }] })
+      .mockResolvedValueOnce({ content: [{ type: "text", text: "Pressed key: enter" }] });
+
+    const integration = createMobileMcpIntegration({
+      resolvePackageBin: vi.fn(async () => "C:/deps/mobile-mcp/dist/index.js"),
+      createClient: vi.fn(() => ({ connect, callTool })),
+      createTransport: vi.fn(() => ({ pid: 9876 })),
+      mkdir: vi.fn(async () => undefined),
+      writeFile: vi.fn(async () => undefined)
+    });
+
+    await expect(integration.dumpUi?.({ deviceId: "emulator-5554" })).resolves.toEqual({
+      raw: '<hierarchy><node text="Login" content-desc="Login button" resource-id="btn-login" class="android.widget.Button" clickable="true" enabled="true" bounds="[0,0][100,100]" /></hierarchy>',
+      nodes: [{
+        text: "Login",
+        contentDescription: "Login button",
+        resourceId: "btn-login",
+        className: "android.widget.Button",
+        clickable: true,
+        enabled: true,
+        bounds: "[0,0][100,100]"
+      }]
+    });
+    await expect(integration.tap?.({ x: 10, y: 20, deviceId: "emulator-5554" })).resolves.toEqual({
+      action: "tap",
+      deviceId: "emulator-5554",
+      message: "Tapped at (10, 20)"
+    });
+    await expect(integration.swipe?.({
+      startX: 0,
+      startY: 0,
+      endX: 100,
+      endY: 200,
+      duration: 300,
+      deviceId: "emulator-5554"
+    })).resolves.toEqual({
+      action: "swipe",
+      deviceId: "emulator-5554",
+      message: "Swiped from (0, 0) to (100, 200)"
+    });
+    await expect(integration.typeText?.({ text: "salaam", deviceId: "emulator-5554" })).resolves.toEqual({
+      action: "type",
+      deviceId: "emulator-5554",
+      message: "Typed: salaam"
+    });
+    await expect(integration.keyPress?.({ key: "enter", deviceId: "emulator-5554" })).resolves.toEqual({
+      action: "key_press",
+      deviceId: "emulator-5554",
+      message: "Pressed key: enter"
+    });
+
+    expect(connect).toHaveBeenCalledTimes(1);
+    expect(callTool).toHaveBeenNthCalledWith(1, {
+      name: "mobile_init",
+      arguments: {}
+    });
+    expect(callTool).toHaveBeenNthCalledWith(2, {
+      name: "mobile_dump_ui",
+      arguments: { deviceId: "emulator-5554" }
+    });
+    expect(callTool).toHaveBeenNthCalledWith(3, {
+      name: "mobile_tap",
+      arguments: { x: 10, y: 20, deviceId: "emulator-5554" }
+    });
+    expect(callTool).toHaveBeenNthCalledWith(4, {
+      name: "mobile_swipe",
+      arguments: {
+        startX: 0,
+        startY: 0,
+        endX: 100,
+        endY: 200,
+        duration: 300,
+        deviceId: "emulator-5554"
+      }
+    });
+    expect(callTool).toHaveBeenNthCalledWith(5, {
+      name: "mobile_type",
+      arguments: { text: "salaam", deviceId: "emulator-5554" }
+    });
+    expect(callTool).toHaveBeenNthCalledWith(6, {
+      name: "mobile_key_press",
+      arguments: { key: "enter", deviceId: "emulator-5554" }
+    });
+  });
+
 });
