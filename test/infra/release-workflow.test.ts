@@ -17,6 +17,8 @@ describe("release workflow", () => {
     expect(workflow).toContain("release_pending");
     expect(workflow).toContain("steps.release_gate.outputs.run_release == 'true'");
     expect(workflow).not.toContain("NODE_AUTH_TOKEN:");
+    expect(workflow).toContain("NPM_TOKEN: \"\"");
+    expect(workflow).not.toContain("registry-url:");
     expect(workflow.indexOf("Build")).toBeLessThan(workflow.indexOf("Run tests"));
   });
 
@@ -31,5 +33,7 @@ describe("release workflow", () => {
     expect(config.plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === "@semantic-release/npm" : plugin === "@semantic-release/npm")).toBe(true);
     expect(config.plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === "@semantic-release/github" : plugin === "@semantic-release/github")).toBe(true);
     expect(config.plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === "@semantic-release/changelog" : plugin === "@semantic-release/changelog")).toBe(true);
+    const githubPlugin = config.plugins.find((plugin) => Array.isArray(plugin) && plugin[0] === "@semantic-release/github");
+    expect(githubPlugin).toEqual(["@semantic-release/github", { labels: false }]);
   });
 });

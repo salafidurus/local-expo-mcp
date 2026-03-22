@@ -10,7 +10,7 @@ describe("package metadata", () => {
       private?: boolean;
       bin?: Record<string, string>;
       files?: string[];
-      publishConfig?: Record<string, string>;
+      publishConfig?: Record<string, string | boolean>;
       scripts?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
@@ -23,7 +23,8 @@ describe("package metadata", () => {
     expect(packageJson.files).toContain("dist");
     expect(packageJson.publishConfig).toEqual({
       access: "public",
-      registry: "https://registry.npmjs.org"
+      registry: "https://registry.npmjs.org",
+      provenance: true
     });
     expect(packageJson.devDependencies?.["semantic-release"]).toBeDefined();
     expect(packageJson.devDependencies?.["@semantic-release/npm"]).toBeDefined();
