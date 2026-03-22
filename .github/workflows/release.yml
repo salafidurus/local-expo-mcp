@@ -11,23 +11,21 @@ on:
 permissions:
   contents: write
   issues: write
-  pull-requests: read
+  pull-requests: write
   id-token: write
 
 jobs:
-  release:
+  gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    outputs:
+      prepare_release_pr: ${{ steps.push_gate.outputs.prepare_release_pr || 'false' }}
+      publish_release: ${{ steps.push_gate.outputs.publish_release || 'false' }}
+      pr_title: ${{ steps.push_gate.outputs.pr_title }}
+      pr_body: ${{ steps.push_gate.outputs.pr_body }}
+      source_sha: ${{ steps.push_gate.outputs.source_sha }}
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          ref: main
-
-      - name: Determine publish label for pushed commit
-        id: publish_gate
+      - name: Determine release mode from pushed commit
+        id: push_gate
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,88 +41,146 @@ jobs:
               sleep 2
             fi
           done
-          if [ "$(echo "$prs" | jq 'length')" -eq 0 ]; then
-            echo "publish_label=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if echo "$prs" | jq -e 'map(select(any(.labels[]?; .name == "publish"))) | length > 0' >/dev/null; then
-            echo "publish_label=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "publish_label=false" >> "$GITHUB_OUTPUT"
-          fi
 
-      - name: Determine if scheduled release is pending
-        id: schedule_gate
-        if: github.event_name == 'schedule'
-        run: |
-          set -euo pipefail
-          release_pending=$(node - <<'NODE'
-          const { execSync } = require("node:child_process");
-          const timeval = execSync("npm view local-expo-mcp time.modified --json").toString().trim();
-          const modified = JSON.parse(timeval);
-          const last = Date.parse(modified);
-          const now = Date.now();
-          const threshold = 7 * 24 * 60 * 60 * 1000;
-          if (isNaN(last) || last <= 0) {
-            console.log("false");
-          } else {
-            console.log(now - last >= threshold ? "true" : "false");
-          }
-          NODE
-          )
-          echo "release_pending=$release_pending" >> "$GITHUB_OUTPUT"
+          prepare_pr=$(echo "$prs" | jq -r 'map(select(any(.labels[]?; .name == "publish") and .head.ref != "release/next")) | length > 0')
+          publish_release=$(echo "$prs" | jq -r 'map(select(.head.ref == "release/next")) | length > 0')
+          pr_title=$(echo "$prs" | jq -r 'map(select(any(.labels[]?; .name == "publish") and .head.ref != "release/next")) | .[0].title // ""')
+          pr_body=$(echo "$prs" | jq -r 'map(select(any(.labels[]?; .name == "publish") and .head.ref != "release/next")) | .[0].body // ""')
 
-      - name: Decide whether to publish
-        id: release_gate
-        run: |
-          run_release=true
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ steps.publish_gate.outputs.publish_label }}" != "true" ]; then
-            run_release=false
-          fi
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ steps.schedule_gate.outputs.release_pending }}" != "true" ]; then
-            run_release=false
-          fi
-          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
+          echo "prepare_release_pr=$prepare_pr" >> "$GITHUB_OUTPUT"
+          echo "publish_release=$publish_release" >> "$GITHUB_OUTPUT"
+          {
+            echo 'pr_title<<EOF'
+            echo "$pr_title"
+            echo 'EOF'
+            echo 'pr_body<<EOF'
+            echo "$pr_body"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+          echo "source_sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+  prepare_release_pr:
+    runs-on: ubuntu-latest
+    needs: gate
+    if: needs.gate.outputs.prepare_release_pr == 'true'
+    timeout-minutes: 20
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: main
 
       - name: Setup Bun
-        if: steps.release_gate.outputs.run_release == 'true'
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
 
-      - name: Setup Node for npm publish
+      - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 24
 
       - name: Install dependencies
-        if: steps.release_gate.outputs.run_release == 'true'
         run: bun install --frozen-lockfile
 
-      - name: Run commitlint
-        if: steps.release_gate.outputs.run_release == 'true'
-        run: bunx commitlint --from ${{ github.sha }}^ --to ${{ github.sha }}
-
       - name: Build
-        if: steps.release_gate.outputs.run_release == 'true'
         run: bun run build
 
       - name: Run tests
-        if: steps.release_gate.outputs.run_release == 'true'
         run: bunx vitest run
 
-      - name: Debug OIDC env
-        if: steps.release_gate.outputs.run_release == 'true'
-        run: |
-          node -e "console.log({ACTIONS_ID_TOKEN_REQUEST_URL: !!process.env.ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN: !!process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN})"
-
-      - name: Debug npm auth context
-        if: steps.release_gate.outputs.run_release == 'true'
-        run: |
-          npm config list
-
-      - name: Publish release
-        if: steps.release_gate.outputs.run_release == 'true'
-        run: bun run release
+      - name: Prepare release PR content
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PR_TITLE: ${{ needs.gate.outputs.pr_title }}
+          RELEASE_PR_BODY: ${{ needs.gate.outputs.pr_body }}
+          RELEASE_SOURCE_SHA: ${{ needs.gate.outputs.source_sha }}
+        run: |
+          bun run release:prepare-pr > release-plan.json
+          cat release-plan.json
+
+      - name: Commit and push release branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- package.json CHANGELOG.md .release-plan.json; then
+            echo "No release PR changes detected"
+            exit 0
+          fi
+          version=$(jq -r '.version' release-plan.json)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B release/next
+          git add package.json CHANGELOG.md .release-plan.json
+          git commit -m "chore(release): ${version}"
+          git push --force-with-lease origin release/next
+
+      - name: Create or update release PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title=$(jq -r '.title' release-plan.json)
+          jq -r '.body' release-plan.json > release-pr-body.md
+          if gh pr view release/next --json number >/dev/null 2>&1; then
+            gh pr edit release/next --title "$title" --body-file release-pr-body.md
+          else
+            gh pr create --base main --head release/next --title "$title" --body-file release-pr-body.md --label release
+          fi
+
+  publish_release:
+    runs-on: ubuntu-latest
+    needs: gate
+    if: needs.gate.outputs.publish_release == 'true'
+    timeout-minutes: 20
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+
+      - name: Run tests
+        run: bunx vitest run
+
+      - name: Publish package
+        run: bun run release:publish
+
+      - name: Create tag and GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag="v${version}"
+          if ! git rev-parse "$tag" >/dev/null 2>&1; then
+            git tag "$tag"
+            git push origin "$tag"
+          fi
+          node - <<'NODE' > release-notes.md
+          const fs = require('node:fs');
+          const version = require('./package.json').version;
+          const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+          const escaped = version.replace(/\./g, '\\.');
+          const match = changelog.match(new RegExp(`## \\[${escaped}\\] - .*?(?=\\n## \\[|$)`, 's'));
+          process.stdout.write((match?.[0] ?? `Release ${version}`).trim() + '\n');
+          NODE
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --title "$tag" --notes-file release-notes.md
+          else
+            gh release create "$tag" --title "$tag" --notes-file release-notes.md
+          fi
