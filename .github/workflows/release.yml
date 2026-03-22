@@ -106,11 +106,13 @@ jobs:
 
       - name: Debug OIDC env
         if: steps.release_gate.outputs.run_release == 'true'
-        run: node -e "console.log({ACTIONS_ID_TOKEN_REQUEST_URL: !!process.env.ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN: !!process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN})"
+        run: |
+          node -e "console.log({ACTIONS_ID_TOKEN_REQUEST_URL: !!process.env.ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN: !!process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN})"
 
       - name: Debug npm auth context
         if: steps.release_gate.outputs.run_release == 'true'
-        run: npm config list
+        run: |
+          npm config list
 
       - name: Publish release
         if: steps.release_gate.outputs.run_release == 'true'

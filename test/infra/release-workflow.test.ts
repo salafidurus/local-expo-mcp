@@ -23,6 +23,8 @@ describe("release workflow", () => {
     expect(workflow).toContain("ACTIONS_ID_TOKEN_REQUEST_URL");
     expect(workflow).toContain("Debug npm auth context");
     expect(workflow).toContain("npm config list");
+    expect(workflow).toContain("run: |\n          node -e");
+    expect(workflow).toContain("run: |\n          npm config list");
     expect(workflow.indexOf("Build")).toBeLessThan(workflow.indexOf("Run tests"));
   });
 
