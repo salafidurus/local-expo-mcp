@@ -275,8 +275,8 @@ If you are working inside this repo, use the validation guidance in [AGENT.md](A
 This repo includes:
 - CI for install, commitlint, tests, and build
 - semantic-release driven changelog and npm publishing
-- push-driven release automation that checks whether the merged PR for a `main` commit carried the `publish` label
-- stale publish automation when the package has not been published in the last 7 days and a release is pending
+- a single release workflow (`.github/workflows/release.yml`) that runs on `main` pushes with the `publish` label, on manual dispatch, and on a weekly schedule that only publishes if npm shows the last release is older than seven days
+- Trusted Publisher (GitHub OIDC) so releases can run without a static `NPM_TOKEN`
 - Dependabot for npm and GitHub Actions updates
 
 Manual dispatch still works for maintainers when a publish should be forced.

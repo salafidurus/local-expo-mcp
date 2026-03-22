@@ -5,6 +5,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 6"
 
 permissions:
   contents: write
@@ -41,38 +43,70 @@ jobs:
             echo "publish_label=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Determine if scheduled release is pending
+        id: schedule_gate
+        if: github.event_name == 'schedule'
+        run: |
+          set -euo pipefail
+          release_pending=$(node - <<'NODE'
+          const { execSync } = require("node:child_process");
+          const timeval = execSync("npm view local-expo-mcp time.modified --json").toString().trim();
+          const modified = JSON.parse(timeval);
+          const last = Date.parse(modified);
+          const now = Date.now();
+          const threshold = 7 * 24 * 60 * 60 * 1000;
+          if (isNaN(last) || last <= 0) {
+            console.log("false");
+          } else {
+            console.log(now - last >= threshold ? "true" : "false");
+          }
+          NODE
+          )
+          echo "release_pending=$release_pending" >> "$GITHUB_OUTPUT"
+
+      - name: Decide whether to publish
+        id: release_gate
+        run: |
+          run_release=true
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ steps.publish_gate.outputs.publish_label }}" != "true" ]; then
+            run_release=false
+          fi
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ steps.schedule_gate.outputs.release_pending }}" != "true" ]; then
+            run_release=false
+          fi
+          echo "run_release=$run_release" >> "$GITHUB_OUTPUT"
+
       - name: Setup Bun
-        if: github.event_name == 'workflow_dispatch' || steps.publish_gate.outputs.publish_label == 'true'
+        if: steps.release_gate.outputs.run_release == 'true'
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
 
       - name: Setup Node for npm publish
-        if: github.event_name == 'workflow_dispatch' || steps.publish_gate.outputs.publish_label == 'true'
+        if: steps.release_gate.outputs.run_release == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
-        if: github.event_name == 'workflow_dispatch' || steps.publish_gate.outputs.publish_label == 'true'
+        if: steps.release_gate.outputs.run_release == 'true'
         run: bun install --frozen-lockfile
 
       - name: Run commitlint
-        if: github.event_name == 'workflow_dispatch' || steps.publish_gate.outputs.publish_label == 'true'
+        if: steps.release_gate.outputs.run_release == 'true'
         run: bun run commitlint
 
       - name: Run tests
-        if: github.event_name == 'workflow_dispatch' || steps.publish_gate.outputs.publish_label == 'true'
+        if: steps.release_gate.outputs.run_release == 'true'
         run: bunx vitest run
 
       - name: Build
-        if: github.event_name == 'workflow_dispatch' || steps.publish_gate.outputs.publish_label == 'true'
+        if: steps.release_gate.outputs.run_release == 'true'
         run: bun run build
 
       - name: Publish release
-        if: github.event_name == 'workflow_dispatch' || steps.publish_gate.outputs.publish_label == 'true'
+        if: steps.release_gate.outputs.run_release == 'true'
         run: bun run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
