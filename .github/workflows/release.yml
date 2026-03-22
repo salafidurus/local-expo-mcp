@@ -42,8 +42,8 @@ jobs:
             fi
           done
 
-          prepare_pr=$(echo "$prs" | jq -r 'map(select(any(.labels[]?; .name == "publish") and .head.ref != "release/next")) | length > 0')
           publish_release=$(echo "$prs" | jq -r 'map(select(.head.ref == "release/next")) | length > 0')
+          prepare_pr=$(echo "$prs" | jq -r 'if any(.[]?; .head.ref == "release/next") then false else map(select(any(.labels[]?; .name == "publish") and .head.ref != "release/next")) | length > 0 end')
           pr_title=$(echo "$prs" | jq -r 'map(select(any(.labels[]?; .name == "publish") and .head.ref != "release/next")) | .[0].title // ""')
           pr_body=$(echo "$prs" | jq -r 'map(select(any(.labels[]?; .name == "publish") and .head.ref != "release/next")) | .[0].body // ""')
 
