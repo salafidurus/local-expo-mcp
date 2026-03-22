@@ -6,10 +6,10 @@ import { describe, expect, it } from "vitest";
 describe("build output", () => {
   it("does not emit tests or vitest config files into dist", async () => {
     const distPath = path.resolve("dist");
-    try {
-      await readdir(distPath);
-    } catch {
-      execFileSync("bun", ["run", "build"], { stdio: "inherit" });
+    const distExists = await readdir(distPath).then(() => true).catch(() => false);
+    if (!distExists) {
+      const bunCmd = process.env.BUN_BIN ?? "bun";
+      execFileSync(bunCmd, ["run", "build"], { stdio: "inherit" });
     }
 
     const entries = await readdir(distPath);
