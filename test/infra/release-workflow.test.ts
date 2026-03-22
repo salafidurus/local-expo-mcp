@@ -19,6 +19,7 @@ describe("release workflow", () => {
     expect(workflow).toContain('git checkout -B release/next');
     expect(workflow).toContain('gh pr create --base main --head release/next');
     expect(workflow).toContain('gh pr edit release/next');
+    expect(workflow).not.toContain('--label release');
     expect(workflow).toContain('bun run release:publish');
     expect(workflow).toContain('gh release create "$tag"');
     expect(workflow).not.toContain('semantic-release');
