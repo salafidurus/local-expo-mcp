@@ -68,6 +68,6 @@
     "typescript": "^5.9.0",
     "vitest": "^4.1.0",
     "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^19.8.0"
+    "@commitlint/config-conventional": "^20.5.0"
   }
 }
