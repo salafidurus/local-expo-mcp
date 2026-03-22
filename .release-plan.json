@@ -1,0 +1,16 @@
+{
+  "baseVersion": "0.1.0",
+  "releaseType": "minor",
+  "nextVersion": "0.2.0",
+  "notes": {
+    "breaking": [],
+    "features": [
+      "expand mobile mcp forwarding"
+    ],
+    "fixes": [
+      "remove release label dependency"
+    ],
+    "others": []
+  },
+  "sourceSha": "2309286244797dc9f18c0456a4fb09781a5e0f61"
+}

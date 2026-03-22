@@ -25,6 +25,26 @@ This project aims to follow Semantic Versioning once the package is ready for pu
 - Split the default test suite from the live test suite and added `test:acceptance`.
 - Default live Metro smoke now targets the repo-owned passing Expo app unless overridden.
 
+
+
+## [0.2.0] - 2026-03-22
+
+### Added
+
+- expand mobile mcp forwarding
+
+### Fixed
+
+- remove release label dependency
+## [0.2.0] - 2026-03-22
+
+### Added
+
+- expand mobile mcp forwarding
+
+### Fixed
+
+- remove release label dependency
 ## [0.1.0] - TBD
 
 ### Added
