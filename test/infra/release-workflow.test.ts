@@ -17,6 +17,7 @@ describe("release workflow", () => {
     expect(workflow).toContain("release_pending");
     expect(workflow).toContain("steps.release_gate.outputs.run_release == 'true'");
     expect(workflow).not.toContain("NODE_AUTH_TOKEN:");
+    expect(workflow.indexOf("Build")).toBeLessThan(workflow.indexOf("Run tests"));
   });
 
   it("has a semantic-release config file in the repo", async () => {
