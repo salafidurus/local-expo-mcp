@@ -68,7 +68,7 @@ export async function createServer(input?: { context?: AppContext }): Promise<{ 
   const toolRegistry = createToolRegistry(context);
 
   for (const [name, handler] of Object.entries(toolRegistry)) {
-    const inputSchema = toolSchemas[name as keyof typeof toolSchemas];
+    const inputSchema = toolSchemas[name as keyof typeof toolSchemas] as any;
 
     mcpServer.registerTool(
       name,
