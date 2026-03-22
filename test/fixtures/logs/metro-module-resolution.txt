@@ -1,0 +1,5 @@
+Unable to resolve module ./foo from C:\dev\app\src\App.tsx:
+
+None of these files exist:
+  * src\foo(.native|.android.ts|.ts|.native.ts|.android.tsx|.tsx|.native.js|.android.js|.js|.native.jsx|.android.jsx|.jsx|.native.json|.android.json|.json)
+  * src\foo

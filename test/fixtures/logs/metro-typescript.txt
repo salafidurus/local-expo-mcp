@@ -1,0 +1,8 @@
+ERROR in src/App.tsx:14:7
+TS2339: Property 'missing' does not exist on type '{ title: string; }'.
+    12 | export function Screen(props: { title: string }) {
+    13 |   return (
+  > 14 |     <Text>{props.missing}</Text>
+       |       ^^^^^^^
+    15 |   );
+    16 | }
