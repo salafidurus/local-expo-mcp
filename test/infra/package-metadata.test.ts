@@ -22,7 +22,8 @@ describe("package metadata", () => {
     });
     expect(packageJson.files).toContain("dist");
     expect(packageJson.publishConfig).toEqual({
-      access: "public"
+      access: "public",
+      registry: "https://registry.npmjs.org"
     });
     expect(packageJson.devDependencies?.["semantic-release"]).toBeDefined();
     expect(packageJson.devDependencies?.["@semantic-release/npm"]).toBeDefined();
