@@ -608,6 +608,7 @@ Objectives:
 - implement `session_summary`
 - finalize docs, notices, and release-facing artifacts
 - keep macOS explicitly deferred
+- document deferred release-ops hardening tasks for the PR-based publish flow
 
 Tests first:
 
@@ -618,6 +619,10 @@ Exit criteria:
 
 - summary reflects orchestrator state accurately
 - docs explain the single-server model, testing model, Windows-first scope, and current Linux status
+
+Deferred follow-up:
+
+- evaluate a light protection rule for `release/next` that reserves the branch name and prevents accidental deletion while still allowing the release workflow to force-update it
 
 ## Test Inventory
 

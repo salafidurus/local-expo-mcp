@@ -477,6 +477,7 @@ Acceptance status:
 Acceptance status:
 
 - summary, docs, notices, CI, release workflow, Dependabot, and changelog are complete
+- deferred hardening remains for the automation-owned `release/next` branch rule
 
 ## Lifecycle Edge-Case Matrix
 
@@ -497,6 +498,7 @@ Still expandable if needed:
 - simulated unexpected hidden child exit without explicit close
 - richer `mobile-mcp` tool forwarding beyond current screenshot and optional preference paths
 - future Linux validation once a Linux environment is available
+- light `release/next` branch protection that blocks accidental deletion or manual reuse of the branch name without blocking workflow force-push updates
 
 ## Validation Gates
 

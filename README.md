@@ -274,12 +274,34 @@ If you are working inside this repo, use the validation guidance in [AGENT.md](A
 
 This repo includes:
 - CI for install, commitlint, tests, and build
-- semantic-release driven changelog and npm publishing
-- a single release workflow (`.github/workflows/release.yml`) that runs on `main` pushes with the `publish` label, on manual dispatch, and on a weekly schedule that only publishes if npm shows the last release is older than seven days
-- Trusted Publisher (GitHub OIDC) so releases can run without a static `NPM_TOKEN`
+- a PR-based release workflow in [release.yml](.github/workflows/release.yml)
+- Trusted Publisher (GitHub OIDC) so npm publishing runs without a static `NPM_TOKEN`
 - Dependabot for npm and GitHub Actions updates
 
-Manual dispatch still works for maintainers when a publish should be forced.
+### Release Process
+
+This repo does not publish directly from a feature PR merge. It uses a two-step flow so `main` stays PR-only:
+
+1. Merge a normal PR into `main` with the `publish` label.
+2. The release workflow updates `release/next` with:
+   - the next version in [package.json](package.json)
+   - the pending release entry in [CHANGELOG.md](CHANGELOG.md)
+   - the pending release state file `.release-plan.json`
+3. The workflow creates or updates a PR from `release/next` into `main`.
+4. Review and merge that release PR.
+5. After the `release/next` PR is merged, the workflow:
+   - runs build and tests again
+   - publishes to npm with OIDC
+   - creates or updates the GitHub release and tag
+
+Version selection is based on the merged PR title/body using conventional-commit style rules:
+- `feat:` -> minor
+- `fix:` and `perf:` -> patch
+- `feat!:` or `BREAKING CHANGE:` -> major
+- `refactor:`, `build:`, and `ci:` can still produce a patch release
+- `docs:` and `test:` alone do not create a release PR
+
+If multiple publish-labeled PRs merge before `release/next` is merged, the pending release PR is updated and the version is escalated as needed.
 
 ## Troubleshooting
 
