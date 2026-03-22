@@ -33,7 +33,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          prs=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" -H "Accept: application/vnd.github+json")
+          prs='[]'
+          for attempt in 1 2 3 4 5; do
+            prs=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" -H "Accept: application/vnd.github+json")
+            if [ "$(echo "$prs" | jq 'length')" -gt 0 ]; then
+              break
+            fi
+            if [ "$attempt" -lt 5 ]; then
+              sleep 2
+            fi
+          done
           if [ "$(echo "$prs" | jq 'length')" -eq 0 ]; then
             echo "publish_label=false" >> "$GITHUB_OUTPUT"
             exit 0

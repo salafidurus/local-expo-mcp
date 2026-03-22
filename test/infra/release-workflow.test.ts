@@ -13,6 +13,9 @@ describe("release workflow", () => {
     expect(workflow).toContain("cron: \"0 0 * * 6\"");
     expect(workflow).toContain("publish_label=true");
     expect(workflow).toContain("steps.publish_gate.outputs.publish_label");
+    expect(workflow).toContain("for attempt in 1 2 3 4 5; do");
+    expect(workflow).toContain('sleep 2');
+    expect(workflow).toContain('jq \'length\'');
     expect(workflow).toContain("npm view local-expo-mcp time.modified");
     expect(workflow).toContain("release_pending");
     expect(workflow).toContain("steps.release_gate.outputs.run_release == 'true'");
