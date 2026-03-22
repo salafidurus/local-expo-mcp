@@ -38,10 +38,19 @@ describe("release workflow", () => {
     };
 
     expect(config.branches).toEqual(["main"]);
-    expect(config.plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === "@semantic-release/npm" : plugin === "@semantic-release/npm")).toBe(true);
+    expect(config.plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === "@semantic-release/npm" : plugin === "@semantic-release/npm")).toBe(false);
+    expect(config.plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === "@semantic-release/exec" : plugin === "@semantic-release/exec")).toBe(true);
     expect(config.plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === "@semantic-release/github" : plugin === "@semantic-release/github")).toBe(true);
     expect(config.plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === "@semantic-release/changelog" : plugin === "@semantic-release/changelog")).toBe(true);
     const githubPlugin = config.plugins.find((plugin) => Array.isArray(plugin) && plugin[0] === "@semantic-release/github");
     expect(githubPlugin).toEqual(["@semantic-release/github", { labels: false }]);
+    const execPlugin = config.plugins.find((plugin) => Array.isArray(plugin) && plugin[0] === "@semantic-release/exec");
+    expect(execPlugin).toEqual([
+      "@semantic-release/exec",
+      {
+        prepareCmd: "npm pkg set version=${nextRelease.version}",
+        publishCmd: "npm publish --provenance --access public"
+      }
+    ]);
   });
 });

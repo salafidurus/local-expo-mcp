@@ -10,9 +10,10 @@
       }
     ],
     [
-      "@semantic-release/npm",
+      "@semantic-release/exec",
       {
-        "npmPublish": true
+        "prepareCmd": "npm pkg set version=${nextRelease.version}",
+        "publishCmd": "npm publish --provenance --access public"
       }
     ],
     [
