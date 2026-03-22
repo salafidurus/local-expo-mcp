@@ -2,5 +2,6 @@ node_modules/
 dist/
 coverage/
 .changeset/
+.husky/_/
 *.log
 .DS_Store
