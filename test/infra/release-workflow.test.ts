@@ -19,6 +19,10 @@ describe("release workflow", () => {
     expect(workflow).not.toContain("NODE_AUTH_TOKEN:");
     expect(workflow).toContain("NPM_TOKEN: \"\"");
     expect(workflow).not.toContain("registry-url:");
+    expect(workflow).toContain("Debug OIDC env");
+    expect(workflow).toContain("ACTIONS_ID_TOKEN_REQUEST_URL");
+    expect(workflow).toContain("Debug npm auth context");
+    expect(workflow).toContain("npm config list");
     expect(workflow.indexOf("Build")).toBeLessThan(workflow.indexOf("Run tests"));
   });
 
