@@ -63,13 +63,13 @@ jobs:
             echo "release_pending=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run tests
-        if: steps.publish_age.outputs.stale == 'true' && steps.release_check.outputs.release_pending == 'true'
-        run: bunx vitest run
-
       - name: Build
         if: steps.publish_age.outputs.stale == 'true' && steps.release_check.outputs.release_pending == 'true'
         run: bun run build
+
+      - name: Run tests
+        if: steps.publish_age.outputs.stale == 'true' && steps.release_check.outputs.release_pending == 'true'
+        run: bunx vitest run
 
       - name: Publish stale release
         if: steps.publish_age.outputs.stale == 'true' && steps.release_check.outputs.release_pending == 'true'

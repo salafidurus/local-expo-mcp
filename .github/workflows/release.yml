@@ -97,13 +97,13 @@ jobs:
         if: steps.release_gate.outputs.run_release == 'true'
         run: bunx commitlint --from ${{ github.sha }}^ --to ${{ github.sha }}
 
-      - name: Run tests
-        if: steps.release_gate.outputs.run_release == 'true'
-        run: bunx vitest run
-
       - name: Build
         if: steps.release_gate.outputs.run_release == 'true'
         run: bun run build
+
+      - name: Run tests
+        if: steps.release_gate.outputs.run_release == 'true'
+        run: bunx vitest run
 
       - name: Publish release
         if: steps.release_gate.outputs.run_release == 'true'
