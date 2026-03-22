@@ -39,8 +39,8 @@ jobs:
         if: github.event_name != 'pull_request'
         run: bun run commitlint
 
-      - name: Run tests
-        run: bunx vitest run
-
       - name: Build
         run: bun run build
+
+      - name: Run tests
+        run: bunx vitest run

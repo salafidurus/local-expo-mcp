@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createAppContext } from "../../src/app-context.js";
 import { createMetroStartHandler } from "../../src/tools/metro-start.js";
 import { createDevServerAttachHandler } from "../../src/tools/dev-server-attach.js";
+import { findAvailableTcpPort } from "../../src/utils/ports.js";
 
 function createFakeExpoCli() {
   return {
@@ -44,15 +45,17 @@ describe("dev_server_attach", () => {
     const startMetro = createMetroStartHandler(context);
     const attach = createDevServerAttachHandler(context);
 
-    await startMetro({ projectRoot: "C:/dev/app", port: 8081 });
+    const requestedPort = await findAvailableTcpPort();
+    const startResult = await startMetro({ projectRoot: "C:/dev/app", port: requestedPort });
     const result = await attach({ projectRoot: "C:/dev/app" });
 
-    expect(calls).toEqual(["C:/dev/app|http://127.0.0.1:8081"]);
+    const expectedUrl = startResult.devServerUrl;
+    expect(calls).toEqual([`C:/dev/app|${expectedUrl}`]);
     expect(result).toEqual({
       ok: true,
       attached: true,
       provider: "expo-mcp",
-      devServerUrl: "http://127.0.0.1:8081"
+      devServerUrl: expectedUrl
     });
   });
 
@@ -108,7 +111,8 @@ describe("dev_server_attach", () => {
     const startMetro = createMetroStartHandler(context);
     const attach = createDevServerAttachHandler(context);
 
-    await startMetro({ projectRoot: "C:/dev/app", port: 8081 });
+    const requestedPort = await findAvailableTcpPort();
+    const startResult = await startMetro({ projectRoot: "C:/dev/app", port: requestedPort });
     await attach({ projectRoot: "C:/dev/app" });
     const second = await attach({ projectRoot: "C:/dev/app" });
 
@@ -117,7 +121,7 @@ describe("dev_server_attach", () => {
       ok: true,
       attached: true,
       provider: "expo-mcp",
-      devServerUrl: "http://127.0.0.1:8081"
+      devServerUrl: startResult.devServerUrl
     });
   });
 });

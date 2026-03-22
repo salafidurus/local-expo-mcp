@@ -95,7 +95,7 @@ jobs:
 
       - name: Run commitlint
         if: steps.release_gate.outputs.run_release == 'true'
-        run: bun run commitlint
+        run: bunx commitlint --from ${{ github.sha }}^ --to ${{ github.sha }}
 
       - name: Run tests
         if: steps.release_gate.outputs.run_release == 'true'

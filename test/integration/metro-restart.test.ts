@@ -3,6 +3,7 @@ import { createAppContext } from "../../src/app-context.js";
 import { createMetroRestartHandler } from "../../src/tools/metro-restart.js";
 import { createMetroStartHandler } from "../../src/tools/metro-start.js";
 import { createMetroStatusHandler } from "../../src/tools/metro-status.js";
+import { findAvailableTcpPort } from "../../src/utils/ports.js";
 
 function createRestartableExpoCli() {
   let nextPid = 14560;
@@ -49,23 +50,25 @@ describe("metro restart", () => {
     const restartMetro = createMetroRestartHandler(context);
     const metroStatus = createMetroStatusHandler(context);
 
-    await startMetro({ projectRoot: "C:/dev/app", port: 8081 });
-    const restarted = await restartMetro({ projectRoot: "C:/dev/app", port: 8081, clear: true });
+    const requestedPort = await findAvailableTcpPort();
+    await startMetro({ projectRoot: "C:/dev/app", port: requestedPort });
+    const restarted = await restartMetro({ projectRoot: "C:/dev/app", port: requestedPort, clear: true });
 
     expect(fakeExpoCli.metrics.stopCount).toBe(1);
+    const expectedUrl = `http://127.0.0.1:${requestedPort}`;
     expect(restarted).toEqual({
       ok: true,
       sessionId: "metro:C:/dev/app",
       pid: 14561,
-      port: 8081,
-      devServerUrl: "http://127.0.0.1:8081"
+      port: requestedPort,
+      devServerUrl: expectedUrl
     });
     expect(await metroStatus({ projectRoot: "C:/dev/app" })).toEqual({
       ok: true,
       running: true,
       pid: 14561,
-      port: 8081,
-      devServerUrl: "http://127.0.0.1:8081",
+      port: requestedPort,
+      devServerUrl: expectedUrl,
       uptimeMs: 0
     });
   });
@@ -81,15 +84,16 @@ describe("metro restart", () => {
 
     const restartMetro = createMetroRestartHandler(context);
 
-    const restarted = await restartMetro({ projectRoot: "C:/dev/app", port: 8081 });
+    const requestedPort = await findAvailableTcpPort();
+    const restarted = await restartMetro({ projectRoot: "C:/dev/app", port: requestedPort });
 
     expect(fakeExpoCli.metrics.stopCount).toBe(0);
     expect(restarted).toEqual({
       ok: true,
       sessionId: "metro:C:/dev/app",
       pid: 14560,
-      port: 8081,
-      devServerUrl: "http://127.0.0.1:8081"
+      port: requestedPort,
+      devServerUrl: `http://127.0.0.1:${requestedPort}`
     });
   });
 });
