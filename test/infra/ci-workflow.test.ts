@@ -13,5 +13,6 @@ describe("ci workflow", () => {
     expect(workflow).toContain("bun run commitlint");
     expect(workflow).toContain("Run tests");
     expect(workflow).toContain("Build");
+    expect(workflow.indexOf("Build")).toBeLessThan(workflow.indexOf("Run tests"));
   });
 });

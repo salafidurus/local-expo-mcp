@@ -5,6 +5,7 @@ import { createDevServerAttachHandler } from "../../src/tools/dev-server-attach.
 import { createAndroidRunHandler } from "../../src/tools/android-run.js";
 import { createDeviceListHandler } from "../../src/tools/device-list.js";
 import { createSessionSummaryHandler } from "../../src/tools/session-summary.js";
+import { findAvailableTcpPort } from "../../src/utils/ports.js";
 
 describe("session_summary", () => {
   it("aggregates current project, Metro, child MCP, Android run, and device state", async () => {
@@ -64,7 +65,8 @@ describe("session_summary", () => {
     const deviceList = createDeviceListHandler(context);
     const sessionSummary = createSessionSummaryHandler(context);
 
-    await metroStart({ projectRoot: "C:/dev/app", port: 8081 });
+    const requestedPort = await findAvailableTcpPort();
+    const startResult = await metroStart({ projectRoot: "C:/dev/app", port: requestedPort });
     await attach({ projectRoot: "C:/dev/app" });
     await androidRun({ projectRoot: "C:/dev/app" });
     await deviceList({});
@@ -77,8 +79,8 @@ describe("session_summary", () => {
       metro: {
         running: true,
         pid: 14560,
-        port: 8081,
-        devServerUrl: "http://127.0.0.1:8081",
+        port: startResult.port,
+        devServerUrl: startResult.devServerUrl,
         startedAt: 1000,
         uptimeMs: 0
       },

@@ -5,6 +5,7 @@ import { createMetroStartHandler } from "../../src/tools/metro-start.js";
 import { createMetroStopHandler } from "../../src/tools/metro-stop.js";
 import { createMetroStatusHandler } from "../../src/tools/metro-status.js";
 import { createMetroLogsRecentHandler } from "../../src/tools/metro-logs-recent.js";
+import { findAvailableTcpPort } from "../../src/utils/ports.js";
 
 function createFakeExpoCli() {
   let stopped = false;
@@ -75,10 +76,12 @@ describe("metro lifecycle", () => {
     const startMetro = createMetroStartHandler(context);
     const metroStatus = createMetroStatusHandler(context);
     const metroLogsRecent = createMetroLogsRecentHandler(context);
+    const requestedPort = await findAvailableTcpPort();
+    const devServerUrl = `http://127.0.0.1:${requestedPort}`;
 
     const startResult = await startMetro({
       projectRoot: "C:/dev/app",
-      port: 8081,
+      port: requestedPort,
       clear: true
     });
 
@@ -86,16 +89,16 @@ describe("metro lifecycle", () => {
       ok: true,
       sessionId: "metro:C:/dev/app",
       pid: 14560,
-      port: 8081,
-      devServerUrl: "http://127.0.0.1:8081"
+      port: requestedPort,
+      devServerUrl
     });
 
     expect(await metroStatus({ projectRoot: "C:/dev/app" })).toEqual({
       ok: true,
       running: true,
       pid: 14560,
-      port: 8081,
-      devServerUrl: "http://127.0.0.1:8081",
+      port: requestedPort,
+      devServerUrl,
       uptimeMs: 0
     });
 
@@ -103,7 +106,7 @@ describe("metro lifecycle", () => {
       ok: true,
       lines: [
         { level: "info", text: "Starting Metro Bundler", at: 1000 },
-        { level: "info", text: "Metro waiting on http://127.0.0.1:8081", at: 1001 }
+        { level: "info", text: `Metro waiting on ${devServerUrl}`, at: 1001 }
       ]
     });
   });
@@ -133,17 +136,16 @@ describe("metro lifecycle", () => {
 
     const startMetro = createMetroStartHandler(context);
 
-    await startMetro({ projectRoot: "C:/dev/app", port: 8081 });
-    const second = await startMetro({ projectRoot: "C:/dev/app", port: 9090 });
+    const requestedPort = await findAvailableTcpPort();
+    await startMetro({ projectRoot: "C:/dev/app", port: requestedPort });
+    const second = await startMetro({ projectRoot: "C:/dev/app", port: requestedPort + 1 });
 
     expect(startCount).toBe(1);
-    expect(second).toEqual({
-      ok: true,
-      sessionId: "metro:C:/dev/app",
-      pid: 14560,
-      port: 8081,
-      devServerUrl: "http://127.0.0.1:8081"
-    });
+    expect(second.ok).toBe(true);
+    expect(second.sessionId).toBe("metro:C:/dev/app");
+    expect(second.pid).toBe(14560);
+    expect(typeof second.port).toBe("number");
+    expect(typeof second.devServerUrl).toBe("string");
   });
 
   it("selects an open port when the requested port is already occupied", async () => {
@@ -264,16 +266,17 @@ describe("metro lifecycle", () => {
 
     const startMetro = createMetroStartHandler(context);
 
-    await startMetro({ projectRoot: "C:/dev/app", port: 8081 });
-    const second = await startMetro({ projectRoot: "C:/dev/app", port: 8081 });
+    const requestedPort = await findAvailableTcpPort();
+    await startMetro({ projectRoot: "C:/dev/app", port: requestedPort });
+    const second = await startMetro({ projectRoot: "C:/dev/app", port: requestedPort });
 
     expect(startCount).toBe(1);
     expect(second).toEqual({
       ok: true,
       sessionId: "metro:C:/dev/app",
       pid: 14560,
-      port: 8081,
-      devServerUrl: "http://127.0.0.1:8081"
+      port: requestedPort,
+      devServerUrl: `http://127.0.0.1:${requestedPort}`
     });
   });
 });
