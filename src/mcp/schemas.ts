@@ -5,6 +5,9 @@ const optionalPortSchema = z.number().int().min(1).max(65535).optional();
 const limitSchema = z.number().int().min(1).max(1000).optional();
 const optionalDeviceIdSchema = z.string().min(1).optional();
 const appIdSchema = z.string().min(1);
+const coordinateSchema = z.number().finite().min(0);
+const deviceTextSchema = z.string().min(1);
+const deviceKeySchema = z.string().min(1);
 
 export const toolSchemas: Record<string, z.ZodTypeAny> = {
   project_inspect: z.object({
@@ -45,6 +48,30 @@ export const toolSchemas: Record<string, z.ZodTypeAny> = {
     limit: limitSchema
   }).strict(),
   device_screenshot: z.object({
+    deviceId: optionalDeviceIdSchema
+  }).strict(),
+  device_dump_ui: z.object({
+    deviceId: optionalDeviceIdSchema
+  }).strict(),
+  device_tap: z.object({
+    x: coordinateSchema,
+    y: coordinateSchema,
+    deviceId: optionalDeviceIdSchema
+  }).strict(),
+  device_swipe: z.object({
+    startX: coordinateSchema,
+    startY: coordinateSchema,
+    endX: coordinateSchema,
+    endY: coordinateSchema,
+    duration: z.number().int().min(1).optional(),
+    deviceId: optionalDeviceIdSchema
+  }).strict(),
+  device_type_text: z.object({
+    text: deviceTextSchema,
+    deviceId: optionalDeviceIdSchema
+  }).strict(),
+  device_key_press: z.object({
+    key: deviceKeySchema,
     deviceId: optionalDeviceIdSchema
   }).strict(),
   device_app_launch: z.object({

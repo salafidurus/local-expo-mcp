@@ -7,7 +7,9 @@ import type {
   MetroLogEntry,
   MobileAppActionResult,
   MobileForegroundAppResult,
+  MobileGestureResult,
   MobileMcpDevice,
+  MobileUiNode,
   MobileMcpIntegration
 } from "../app-context.js";
 import { createError } from "../utils/errors.js";
@@ -140,6 +142,55 @@ export function createMobileMcpIntegration(input?: {
       });
       return parseTextPayload<MobileForegroundAppResult>(result, "mobile_foreground_app");
     },
+    async dumpUi(input) {
+      await ensureInitialized();
+      const result = await callTool("mobile_dump_ui", {
+        ...(input?.deviceId ? { deviceId: input.deviceId } : {})
+      });
+      const raw = readTextPayload(result, "mobile_dump_ui");
+
+      return {
+        raw,
+        nodes: parseUiNodes(raw)
+      };
+    },
+    async tap(input) {
+      await ensureInitialized();
+      const result = await callTool("mobile_tap", {
+        x: input.x,
+        y: input.y,
+        ...(input.deviceId ? { deviceId: input.deviceId } : {})
+      });
+      return toGestureResult("tap", input.deviceId, readTextPayload(result, "mobile_tap"));
+    },
+    async swipe(input) {
+      await ensureInitialized();
+      const result = await callTool("mobile_swipe", {
+        startX: input.startX,
+        startY: input.startY,
+        endX: input.endX,
+        endY: input.endY,
+        ...(typeof input.duration === "number" ? { duration: input.duration } : {}),
+        ...(input.deviceId ? { deviceId: input.deviceId } : {})
+      });
+      return toGestureResult("swipe", input.deviceId, readTextPayload(result, "mobile_swipe"));
+    },
+    async typeText(input) {
+      await ensureInitialized();
+      const result = await callTool("mobile_type", {
+        text: input.text,
+        ...(input.deviceId ? { deviceId: input.deviceId } : {})
+      });
+      return toGestureResult("type", input.deviceId, readTextPayload(result, "mobile_type"));
+    },
+    async keyPress(input) {
+      await ensureInitialized();
+      const result = await callTool("mobile_key_press", {
+        key: input.key,
+        ...(input.deviceId ? { deviceId: input.deviceId } : {})
+      });
+      return toGestureResult("key_press", input.deviceId, readTextPayload(result, "mobile_key_press"));
+    },
     async close() {
       await resetConnection();
     }
@@ -218,17 +269,68 @@ function assertToolSuccess(result: McpClientCallResult, toolName: string) {
 }
 
 function parseTextPayload<T>(result: McpClientCallResult, toolName: string): T {
-  const text = result.content?.find((entry) => entry.type === "text" && typeof entry.text === "string")?.text;
-
-  if (!text) {
-    throw createError("MOBILE_MCP_COMMAND_FAILED", `${toolName} did not return text content`);
-  }
+  const text = readTextPayload(result, toolName);
 
   try {
     return JSON.parse(text) as T;
   } catch {
     throw createError("MOBILE_MCP_COMMAND_FAILED", `${toolName} returned invalid JSON`);
   }
+}
+
+function readTextPayload(result: McpClientCallResult, toolName: string): string {
+  const text = result.content?.find((entry) => entry.type === "text" && typeof entry.text === "string")?.text;
+
+  if (!text) {
+    throw createError("MOBILE_MCP_COMMAND_FAILED", `${toolName} did not return text content`);
+  }
+
+  return text;
+}
+
+function toGestureResult(
+  action: MobileGestureResult["action"],
+  deviceId: string | undefined,
+  message: string
+): MobileGestureResult {
+  return {
+    action,
+    ...(deviceId ? { deviceId } : {}),
+    message
+  };
+}
+
+function parseUiNodes(raw: string): MobileUiNode[] {
+  const matches = [...raw.matchAll(/<node\b([^>]*)\/?>/g)];
+
+  return matches.map((match) => {
+    const attributes = match[1] ?? "";
+    return {
+      text: readXmlAttribute(attributes, "text"),
+      contentDescription: readXmlAttribute(attributes, "content-desc"),
+      resourceId: readXmlAttribute(attributes, "resource-id"),
+      className: readXmlAttribute(attributes, "class"),
+      bounds: readXmlAttribute(attributes, "bounds"),
+      clickable: readBooleanAttribute(attributes, "clickable"),
+      enabled: readBooleanAttribute(attributes, "enabled")
+    };
+  });
+}
+
+function readXmlAttribute(attributes: string, name: string): string | undefined {
+  const match = new RegExp(`${name}="([^"]*)"`).exec(attributes);
+  return match?.[1] || undefined;
+}
+
+function readBooleanAttribute(attributes: string, name: string): boolean | undefined {
+  const value = readXmlAttribute(attributes, name);
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  return undefined;
 }
 
 function extensionFromMimeType(mimeType?: string): string {

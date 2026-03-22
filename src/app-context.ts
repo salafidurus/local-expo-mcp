@@ -107,6 +107,22 @@ export type MobileForegroundAppResult = {
   deviceId: string;
 };
 
+export type MobileUiNode = {
+  text?: string;
+  contentDescription?: string;
+  resourceId?: string;
+  className?: string;
+  bounds?: string;
+  clickable?: boolean;
+  enabled?: boolean;
+};
+
+export type MobileGestureResult = {
+  action: "tap" | "swipe" | "type" | "key_press";
+  deviceId?: string;
+  message: string;
+};
+
 export type MobileMcpIntegration = {
   screenshot: (input: { deviceId?: string }) => Promise<{ path: string }>;
   listDevices?: () => Promise<MobileMcpDevice[]>;
@@ -114,6 +130,18 @@ export type MobileMcpIntegration = {
   launchApp?: (input: { appId: string; deviceId?: string }) => Promise<MobileAppActionResult>;
   terminateApp?: (input: { appId: string; deviceId?: string }) => Promise<MobileAppActionResult>;
   foregroundApp?: (input: { deviceId?: string }) => Promise<MobileForegroundAppResult>;
+  dumpUi?: (input?: { deviceId?: string }) => Promise<{ raw: string; nodes: MobileUiNode[] }>;
+  tap?: (input: { x: number; y: number; deviceId?: string }) => Promise<MobileGestureResult>;
+  swipe?: (input: {
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+    duration?: number;
+    deviceId?: string;
+  }) => Promise<MobileGestureResult>;
+  typeText?: (input: { text: string; deviceId?: string }) => Promise<MobileGestureResult>;
+  keyPress?: (input: { key: string; deviceId?: string }) => Promise<MobileGestureResult>;
   close?: () => Promise<void>;
 };
 

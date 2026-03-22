@@ -327,3 +327,7 @@ These client setup examples were checked against current documentation on March 
 - OpenAI Docs MCP guide for Codex MCP configuration examples: https://developers.openai.com/learn/docs-mcp
 - Gemini CLI repository docs pointing to `~/.gemini/settings.json`: https://github.com/google-gemini/gemini-cli
 - OpenCode MCP server docs: https://opencode.ai/docs/mcp-servers/
+
+## Note
+
+This MCP has been engineered heavily with the aid of AI agents, with human review guiding the architecture, implementation, testing, and release workflow decisions.
