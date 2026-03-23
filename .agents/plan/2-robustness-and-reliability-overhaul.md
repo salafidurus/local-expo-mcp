@@ -1,3 +1,10 @@
+---
+title: Robustness and Reliability Overhaul
+status: completed
+created: 2026-03-23
+updated: 2026-03-23
+---
+
 # Plan: Robustness and Reliability Overhaul (TDD)
 
 This plan addresses critical implementation bugs, performance bottlenecks, and reliability gaps identified in the `local-expo-mcp` codebase. We will use a strict **Test-Driven Development (TDD)** approach for each phase.

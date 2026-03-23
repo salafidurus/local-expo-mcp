@@ -1,3 +1,10 @@
+---
+title: local-expo-mcp Project Init Plan
+status: completed
+created: 2026-03-23
+updated: 2026-03-23
+---
+
 # `local-expo-mcp` Project Init Plan
 
 ## Purpose

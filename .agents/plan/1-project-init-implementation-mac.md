@@ -1,3 +1,10 @@
+---
+title: local-expo-mcp macOS Implementation Plan
+status: deferred
+created: 2026-03-23
+updated: 2026-03-23
+---
+
 # `local-expo-mcp` macOS Implementation Plan
 
 ## Status
