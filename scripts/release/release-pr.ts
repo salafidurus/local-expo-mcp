@@ -43,28 +43,43 @@ export function upsertReleaseChangelog(
   notes: ReleaseNotes,
   previousPendingVersion?: string
 ): string {
-  const section = renderChangelogSection(version, isoDate, notes);
   const normalized = changelog.replace(/\r\n/g, "\n");
+  const unreleasedHeader = "## [Unreleased]";
+  const unreleasedIndex = normalized.indexOf(unreleasedHeader);
+
+  let manualNotes = "";
+  let baseChangelog = normalized;
+
+  if (unreleasedIndex !== -1) {
+    const afterUnreleasedHeader = unreleasedIndex + unreleasedHeader.length;
+    const nextSectionIndex = normalized.indexOf("\n## [", afterUnreleasedHeader);
+
+    if (nextSectionIndex !== -1) {
+      manualNotes = normalized.slice(afterUnreleasedHeader, nextSectionIndex).trim();
+      baseChangelog = normalized.slice(0, afterUnreleasedHeader) + "\n" + normalized.slice(nextSectionIndex);
+    } else {
+      manualNotes = normalized.slice(afterUnreleasedHeader).trim();
+      baseChangelog = normalized.slice(0, afterUnreleasedHeader) + "\n";
+    }
+  }
+
+  const section = renderChangelogSection(version, isoDate, notes, manualNotes);
 
   if (previousPendingVersion) {
-    const replaced = replaceReleaseSection(normalized, previousPendingVersion, section);
-    if (replaced !== normalized) {
+    const replaced = replaceReleaseSection(baseChangelog, previousPendingVersion, section);
+    if (replaced !== baseChangelog) {
       return replaced;
     }
   }
 
-  const unreleasedHeader = "## [Unreleased]";
-  const unreleasedIndex = normalized.indexOf(unreleasedHeader);
-  if (unreleasedIndex === -1) {
-    return `${normalized.trimEnd()}\n\n${section}`;
+  // If no previous pending section was found to replace, insert it after [Unreleased]
+  const newUnreleasedIndex = baseChangelog.indexOf(unreleasedHeader);
+  if (newUnreleasedIndex === -1) {
+    return `${baseChangelog.trimEnd()}\n\n${section}`;
   }
 
-  const afterUnreleased = normalized.indexOf("\n## [", unreleasedIndex + unreleasedHeader.length);
-  if (afterUnreleased === -1) {
-    return `${normalized.trimEnd()}\n\n${section}`;
-  }
-
-  return `${normalized.slice(0, afterUnreleased)}\n\n${section}${normalized.slice(afterUnreleased)}`;
+  const afterUnreleased = newUnreleasedIndex + unreleasedHeader.length;
+  return `${baseChangelog.slice(0, afterUnreleased)}\n\n${section}${baseChangelog.slice(afterUnreleased)}`;
 }
 
 function replaceReleaseSection(changelog: string, version: string, nextSection: string): string {
@@ -81,9 +96,14 @@ function replaceReleaseSection(changelog: string, version: string, nextSection: 
 function renderChangelogSection(
   version: string,
   isoDate: string,
-  notes: ReleaseNotes
+  notes: ReleaseNotes,
+  manualNotes?: string
 ): string {
   const lines = [`## [${version}] - ${isoDate}`, ""];
+
+  if (manualNotes) {
+    lines.push(manualNotes, "");
+  }
 
   if (notes.breaking.length > 0) {
     lines.push("### Breaking", "");

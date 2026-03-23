@@ -7,36 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Shebang line to entry point for reliable `npx` execution on Windows.
-- Standardized agent plans in `.agents/plan` with metadata and status tracking.
-- CLI-based setup instructions for Codex, Gemini, and OpenCode in README.
-- Robust UI hierarchy parsing using `fast-xml-parser` for `mobile-mcp` integration.
-- Troubleshooting guidance for ADB device states (`unauthorized`, `offline`, `recovery`).
-- Metro readiness detection using the `/status` endpoint to distinguish from port conflicts.
-
-### Fixed
-- Critical memory leak in `LockManager` where project-specific queues were never deleted.
-- Indefinite hangs during process termination by implementing a 5s grace period with fallback `SIGKILL` (Unix) or `taskkill` (Windows).
-- Windows command spawning bug when binary paths or arguments contain spaces.
-- High memory pressure when reading ADB logs by using the `-t` flag for `logcat`.
-
 ## [0.2.0] - 2026-03-22
 
 ### Added
-- Expanded `mobile-mcp` tool forwarding for richer device interaction.
-- Pinned `mobile-mcp` dependency version for better stability.
-- Acceptance test suite (`test:acceptance`) covering unified Windows/Unix scenarios.
+- Added `#!/usr/bin/env node` shebang to `src/server.ts` to ensure correct execution via `npx` on Windows.
+- Added infrastructure tests to verify the shebang and build output integrity.
+- Added CLI command examples for Codex, Gemini, and OpenCode to the README.
+- Integrated `fast-xml-parser` for robust, hierarchical mobile UI parsing, replacing fragile regex-based logic.
+- Improved Metro readiness detection by specifically polling the `/status` endpoint to distinguish between Metro and other processes.
+- Enriched ADB device states (`unauthorized`, `offline`, `recovery`, `sideload`) with specific troubleshooting guidance.
+- Added metadata and progress tracking to internal agent plans in `.agents/plan`.
+- Initial MCP orchestration scaffolding for Metro, hidden `expo-mcp`, Android runs, `adb` fallback device operations, hidden `mobile-mcp` screenshots, and session summaries.
+- Unit and integration test coverage for the current Windows and Android-first scope.
+- Installed-package bin resolution for hidden MCP child processes.
+- Real runtime integrations for Expo CLI, `adb`, hidden `expo-mcp`, hidden `mobile-mcp`, and server bootstrap wiring.
+- Fixture-backed Metro parser coverage for module resolution, TypeScript, and Babel parse failures.
+- Required live smoke tests for active Android and Metro workflows.
+- Repo-owned live Expo project scaffolding for passing and broken Metro reproduction cases.
+- Repository automation for Dependabot, CI, release packaging, and a maintained changelog.
+- Expanded mobile MCP forwarding.
+
+### Changed
+- Switched the runtime and development workflow to Bun-oriented commands.
+- Pinned `mobile-mcp` to a specific version so dependency updates are explicit and testable.
+- Split the default test suite from the live test suite and added `test:acceptance`.
+- Default live Metro smoke now targets the repo-owned passing Expo app unless overridden.
 
 ### Fixed
-- Release workflow dependency on specific GitHub labels.
-- Metro log classification for better diagnostic clarity.
+- Implemented atomic cleanup in `LockManager` to fix a persistent memory leak where project-specific locks were never removed.
+- Implemented a 5-second termination grace period with `SIGKILL` (Unix) and `taskkill /F` (Windows) fallbacks to prevent zombie processes.
+- Fixed robust Windows command spawning to correctly handle binary paths and arguments containing spaces.
+- Optimized `adb logcat` memory usage by using the `-t` flag to limit initial buffer reads.
+- Removed release label dependency in CI workflow.
 
 ## [0.1.0] - 2026-03-21
 
 ### Added
-- Initial project scaffold with Bun-based development workflow.
-- Core MCP orchestration for Metro, `expo-mcp`, and Android runs.
-- Unit and integration test coverage for core integration layers.
-- GitHub Actions CI and PR-based release automation.
-- Project inspection and session summary tools.
+- Initial project scaffold.

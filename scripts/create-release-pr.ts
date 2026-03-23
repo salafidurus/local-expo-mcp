@@ -27,7 +27,9 @@ function main(): void {
 
   const existingBranch = hasRemoteBranch(RELEASE_BRANCH) ? `origin/${RELEASE_BRANCH}` : null;
   const packageJson = JSON.parse(readRepoFile(existingBranch, PACKAGE_FILE)) as Record<string, unknown> & { version: string };
-  const changelog = readRepoFile(existingBranch, CHANGELOG_FILE);
+  // Always read CHANGELOG.md from disk (the version on main) to respect manual fixes.
+  // The automation will re-insert pending release notes into this base.
+  const changelog = readRepoFile(null, CHANGELOG_FILE);
   const existingState = readPendingState(existingBranch);
   const baseVersion = existingState?.baseVersion ?? packageJson.version;
 
