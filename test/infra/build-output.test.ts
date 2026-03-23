@@ -1,4 +1,4 @@
-import { readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -15,5 +15,14 @@ describe("build output", () => {
     expect(entries).not.toContain("vitest.live.config.js");
     expect(entries).not.toContain("vitest.live.config.d.ts");
     expect(entries).toContain("server.js");
+  });
+
+  it("dist/server.js has the correct shebang for node-based execution", async () => {
+    const serverJsPath = path.resolve("dist/server.js");
+    const content = await readFile(serverJsPath, "utf8").catch(() => {
+      throw new Error("dist/server.js is missing—please run `bun run build` before this test");
+    });
+
+    expect(content.startsWith("#!/usr/bin/env node")).toBe(true);
   });
 });
