@@ -1,6 +1,7 @@
 import { mkdir as defaultMkdir, writeFile as defaultWriteFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { join, resolve } from "node:path";
+import { XMLParser } from "fast-xml-parser";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import type {
@@ -301,36 +302,44 @@ function toGestureResult(
 }
 
 function parseUiNodes(raw: string): MobileUiNode[] {
-  const matches = [...raw.matchAll(/<node\b([^>]*)\/?>/g)];
-
-  return matches.map((match) => {
-    const attributes = match[1] ?? "";
-    return {
-      text: readXmlAttribute(attributes, "text"),
-      contentDescription: readXmlAttribute(attributes, "content-desc"),
-      resourceId: readXmlAttribute(attributes, "resource-id"),
-      className: readXmlAttribute(attributes, "class"),
-      bounds: readXmlAttribute(attributes, "bounds"),
-      clickable: readBooleanAttribute(attributes, "clickable"),
-      enabled: readBooleanAttribute(attributes, "enabled")
-    };
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: ""
   });
-}
+  const jsonObj = parser.parse(raw);
+  const nodes: MobileUiNode[] = [];
 
-function readXmlAttribute(attributes: string, name: string): string | undefined {
-  const match = new RegExp(`${name}="([^"]*)"`).exec(attributes);
-  return match?.[1] || undefined;
-}
+  function walk(obj: any) {
+    if (!obj || typeof obj !== "object") {
+      return;
+    }
 
-function readBooleanAttribute(attributes: string, name: string): boolean | undefined {
-  const value = readXmlAttribute(attributes, name);
-  if (value === "true") {
-    return true;
+    const nodeData = obj.node;
+    if (nodeData) {
+      const nodeArray = Array.isArray(nodeData) ? nodeData : [nodeData];
+      for (const node of nodeArray) {
+        nodes.push({
+          text: node.text === "" ? undefined : node.text,
+          contentDescription: node["content-desc"] === "" ? undefined : node["content-desc"],
+          resourceId: node["resource-id"] === "" ? undefined : node["resource-id"],
+          className: node.class === "" ? undefined : node.class,
+          bounds: node.bounds === "" ? undefined : node.bounds,
+          clickable: node.clickable === "true" ? true : node.clickable === "false" ? false : undefined,
+          enabled: node.enabled === "true" ? true : node.enabled === "false" ? false : undefined
+        });
+        walk(node);
+      }
+    }
+
+    for (const key of Object.keys(obj)) {
+      if (key !== "node") {
+        walk(obj[key]);
+      }
+    }
   }
-  if (value === "false") {
-    return false;
-  }
-  return undefined;
+
+  walk(jsonObj.hierarchy || jsonObj);
+  return nodes;
 }
 
 function extensionFromMimeType(mimeType?: string): string {
@@ -340,3 +349,4 @@ function extensionFromMimeType(mimeType?: string): string {
 
   return "png";
 }
+

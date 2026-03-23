@@ -334,4 +334,41 @@ describe("createMobileMcpIntegration", () => {
     });
   });
 
+  it("robustly parses nested UI hierarchies and escaped attributes in dumpUi", async () => {
+    const nestedXml = `
+      <hierarchy>
+        <node text="Outer" class="android.view.ViewGroup" bounds="[0,0][100,100]">
+          <node text="Inner &quot;quoted&quot;" content-desc="Description &gt; here" class="android.widget.TextView" bounds="[10,10][90,90]" />
+        </node>
+      </hierarchy>
+    `;
+
+    const callTool = vi
+      .fn()
+      .mockResolvedValueOnce({ content: [{ type: "text", text: "init" }] })
+      .mockResolvedValueOnce({
+        content: [{ type: "text", text: nestedXml }]
+      });
+
+    const integration = createMobileMcpIntegration({
+      resolvePackageBin: vi.fn(async () => "C:/deps/mobile-mcp/dist/index.js"),
+      createClient: vi.fn(() => ({ connect: vi.fn(), callTool })),
+      createTransport: vi.fn(() => ({ pid: 9876 })),
+      mkdir: vi.fn(async () => undefined),
+      writeFile: vi.fn(async () => undefined)
+    });
+
+    const result = await integration.dumpUi?.({});
+
+    expect(result?.nodes).toContainEqual(expect.objectContaining({
+      text: "Outer",
+      className: "android.view.ViewGroup"
+    }));
+    expect(result?.nodes).toContainEqual(expect.objectContaining({
+      text: 'Inner "quoted"',
+      contentDescription: "Description > here",
+      className: "android.widget.TextView"
+    }));
+  });
+
 });
