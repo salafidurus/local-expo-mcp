@@ -4,6 +4,43 @@ import {
   stopChildProcess
 } from "../../src/integrations/expo-cli.js";
 import type { RunCommandInput, RunCommandResult } from "../../src/utils/spawn.js";
+import { isMetroStatusReady } from "../../src/parsers/metro-readiness.js";
+
+describe("isMetroStatusReady import", () => {
+  it("can be imported from metro-readiness parser", () => {
+    expect(isMetroStatusReady).toBeDefined();
+    expect(typeof isMetroStatusReady).toBe("function");
+  });
+
+  it("is used by expo-cli integration", async () => {
+    const spawnMetroProcess = vi.fn(async (_input: {
+      command: string;
+      args: string[];
+      cwd?: string;
+      onStdoutLine?: (line: string) => void;
+      onStderrLine?: (line: string) => void;
+    }) => ({
+      pid: 1111,
+      stop: vi.fn(async () => undefined)
+    }));
+
+    const waitForPortReady = vi.fn(async () => true);
+
+    const expoCli = createExpoCliIntegration({
+      platform: "linux",
+      spawnMetroProcess,
+      waitForPortReady
+    });
+
+    const controller = await expoCli.startMetro({
+      projectRoot: "/tmp/test",
+      port: 8081
+    });
+
+    expect(controller.pid).toBe(1111);
+    expect(waitForPortReady).toHaveBeenCalled();
+  });
+});
 
 describe("createExpoCliIntegration", () => {
   it("uses taskkill on Windows when stopping a spawned Metro process", async () => {

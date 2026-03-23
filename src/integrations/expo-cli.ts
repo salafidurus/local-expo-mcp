@@ -7,7 +7,7 @@ import type {
   MetroController,
   MetroLogEntry
 } from "../app-context.js";
-import { parseMetroReadinessLine } from "../parsers/metro-readiness.js";
+import { parseMetroReadinessLine, isMetroStatusReady } from "../parsers/metro-readiness.js";
 import {
   buildTerminateProcessCommand,
   prepareSpawnCommand,
@@ -84,7 +84,7 @@ export async function stopChildProcess(
     child.kill(); // SIGTERM
 
     timeoutHandle = setTimeout(() => {
-      child.kill("SIGKILL");
+      (child.kill as (signal: string) => boolean)("SIGKILL");
       // Don't wait forever even for SIGKILL
       setTimeout(done, 1000).unref();
     }, timeoutMs);

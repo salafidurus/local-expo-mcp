@@ -51,6 +51,38 @@ describe("stopChildProcess", () => {
     // resolving is the primary indicator of the fallback.
   });
 
+  it("sends SIGKILL after SIGTERM timeout on Unix", async () => {
+    let closeCallback: ((code: number | null) => void) | null = null;
+    
+    const mockChild = {
+      pid: 123,
+      killed: false,
+      kill: vi.fn((signal?: string) => {
+        // Simulate process responding to the signal
+        if (signal === undefined || signal === "SIGTERM") {
+          // Don't call close - simulate process ignoring SIGTERM
+        } else if (signal === "SIGKILL") {
+          // Simulate process dying from SIGKILL
+          if (closeCallback) closeCallback(9);
+        }
+      }),
+      once: vi.fn((event: string, cb: (code: number | null) => void) => {
+        if (event === "close") {
+          closeCallback = cb;
+        }
+      })
+    };
+
+    const stopPromise = stopChildProcess(mockChild as any, {
+      platform: "linux",
+      timeoutMs: 50 // Very short timeout
+    });
+
+    await expect(stopPromise).resolves.toBeUndefined();
+    expect(mockChild.kill).toHaveBeenCalledWith(); // First call: SIGTERM
+    expect(mockChild.kill).toHaveBeenCalledWith("SIGKILL"); // Second call after timeout
+  });
+
   it("terminates a process within the grace period on Windows", async () => {
     const mockChild = {
       pid: 123,

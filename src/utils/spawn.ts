@@ -100,7 +100,7 @@ export async function runCommand(input: RunCommandInput): Promise<RunCommandResu
             spawn(terminate.command, terminate.args, { stdio: "ignore" }).unref();
           }
         } else {
-          child.kill("SIGKILL");
+          (child.kill as (signal: string) => boolean)("SIGKILL");
         }
       }, PROCESS_TERMINATION_GRACE_PERIOD);
       fallbackHandle.unref();
