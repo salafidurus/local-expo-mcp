@@ -25,8 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2026-03-22
 
 ### Added
-- expand mobile mcp forwarding
-- Bun-based local development, test, and CI workflow.
 - Initial MCP orchestration scaffolding for Metro, hidden `expo-mcp`, Android runs, `adb` fallback device operations, hidden `mobile-mcp` screenshots, and session summaries.
 - Unit and integration test coverage for the current Windows and Android-first scope.
 - Installed-package bin resolution for hidden MCP child processes.
