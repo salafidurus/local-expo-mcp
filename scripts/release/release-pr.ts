@@ -44,55 +44,29 @@ export function upsertReleaseChangelog(
   previousPendingVersion?: string
 ): string {
   const normalized = changelog.replace(/\r\n/g, "\n");
-  const unreleasedHeader = "## [Unreleased]";
-  const unreleasedIndex = normalized.indexOf(unreleasedHeader);
-
-  let manualNotes = "";
-  let baseChangelog = normalized;
-
-  if (unreleasedIndex !== -1) {
-    const afterUnreleasedHeader = unreleasedIndex + unreleasedHeader.length;
-    const nextSectionIndex = normalized.indexOf("\n## [", afterUnreleasedHeader);
-
-    if (nextSectionIndex !== -1) {
-      manualNotes = normalized.slice(afterUnreleasedHeader, nextSectionIndex).trim();
-      baseChangelog = normalized.slice(0, afterUnreleasedHeader) + "\n\n" + normalized.slice(nextSectionIndex).trimStart();
-    } else {
-      manualNotes = normalized.slice(afterUnreleasedHeader).trim();
-      baseChangelog = normalized.slice(0, afterUnreleasedHeader) + "\n";
-    }
-  }
-
-  const section = renderChangelogSection(version, isoDate, notes, manualNotes);
+  const section = renderChangelogSection(version, isoDate, notes);
 
   if (previousPendingVersion) {
-    const replaced = replaceReleaseSection(baseChangelog, previousPendingVersion, section);
-    if (replaced !== baseChangelog) {
+    const replaced = replaceReleaseSection(normalized, previousPendingVersion, section);
+    if (replaced !== normalized) {
       return replaced;
     }
   }
 
-  // Find insertion point: after [Unreleased] header, or after intro, or at top
-  const finalUnreleasedIndex = baseChangelog.indexOf(unreleasedHeader);
-  if (finalUnreleasedIndex !== -1) {
-    const insertAt = finalUnreleasedIndex + unreleasedHeader.length;
-    return `${baseChangelog.slice(0, insertAt)}\n\n${section}\n${baseChangelog.slice(insertAt).trimStart()}`;
-  }
-
-  // If [Unreleased] is missing, look for the first versioned header
-  const firstVersionIndex = baseChangelog.indexOf("\n## [");
+  // Purely automated insertion: find the first version header or insert after intro
+  const firstVersionIndex = normalized.indexOf("\n## [");
   if (firstVersionIndex !== -1) {
-    return `${baseChangelog.slice(0, firstVersionIndex)}\n\n${unreleasedHeader}\n\n${section}\n${baseChangelog.slice(firstVersionIndex).trimStart()}`;
+    return `${normalized.slice(0, firstVersionIndex)}\n\n${section}\n${normalized.slice(firstVersionIndex).trimStart()}`;
   }
 
-  // Fallback: after the first paragraph or at top
-  const firstParagraphEnd = baseChangelog.indexOf("\n\n");
-  if (firstParagraphEnd !== -1) {
-    const insertAt = firstParagraphEnd + 2;
-    return `${baseChangelog.slice(0, insertAt)}${unreleasedHeader}\n\n${section}\n\n${baseChangelog.slice(insertAt)}`;
+  // Fallback: after the first two lines (Title + empty line) or at top
+  const secondNewline = normalized.indexOf("\n", normalized.indexOf("\n") + 1);
+  if (secondNewline !== -1) {
+    const insertAt = secondNewline + 1;
+    return `${normalized.slice(0, insertAt)}\n${section}\n${normalized.slice(insertAt).trimStart()}`;
   }
 
-  return `${unreleasedHeader}\n\n${section}\n\n${baseChangelog}`;
+  return `${section}\n\n${normalized}`;
 }
 
 function replaceReleaseSection(changelog: string, version: string, nextSection: string): string {
@@ -109,14 +83,9 @@ function replaceReleaseSection(changelog: string, version: string, nextSection: 
 function renderChangelogSection(
   version: string,
   isoDate: string,
-  notes: ReleaseNotes,
-  manualNotes?: string
+  notes: ReleaseNotes
 ): string {
   const lines = [`## [${version}] - ${isoDate}`, ""];
-
-  if (manualNotes) {
-    lines.push(manualNotes, "");
-  }
 
   if (notes.breaking.length > 0) {
     lines.push("### Breaking", "");
