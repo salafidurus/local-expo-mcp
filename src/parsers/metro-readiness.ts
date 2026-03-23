@@ -28,3 +28,7 @@ export function parseMetroReadinessLine(line: string): MetroReadinessParseResult
 
   return { ready: false };
 }
+
+export function isMetroStatusReady(body: string): boolean {
+  return /packager-status:running/i.test(body);
+}

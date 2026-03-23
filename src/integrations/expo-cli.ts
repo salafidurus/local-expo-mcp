@@ -329,32 +329,25 @@ async function defaultWaitForPortReady(input: {
   timeoutMs: number;
 }): Promise<boolean> {
   const deadline = Date.now() + input.timeoutMs;
+  const url = `http://${input.host}:${input.port}/status`;
 
   while (Date.now() < deadline) {
-    const reachable = await canConnect(input.host, input.port);
-    if (reachable) {
-      return true;
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(250) });
+      if (response.ok) {
+        const body = await response.text();
+        if (isMetroStatusReady(body)) {
+          return true;
+        }
+      }
+    } catch {
+      // Ignore errors (connection refused, timeout, etc.)
     }
 
     await sleep(250);
   }
 
   return false;
-}
-
-async function canConnect(host: string, port: number): Promise<boolean> {
-  return await new Promise<boolean>((resolve) => {
-    const socket = createConnection({ host, port });
-
-    const done = (value: boolean) => {
-      socket.destroy();
-      resolve(value);
-    };
-
-    socket.once("connect", () => done(true));
-    socket.once("error", () => done(false));
-    socket.setTimeout(250, () => done(false));
-  });
 }
 
 function sleep(ms: number): Promise<void> {
