@@ -42,10 +42,11 @@ export function createAdbIntegration(input?: {
       return parseAdbDevicesOutput(lines);
     },
     async recentLogs(options) {
+      const limit = options?.limit ?? 1000;
       const lines: string[] = [];
       const result = await runCommand({
         command,
-        args: ["logcat", "-d"],
+        args: ["logcat", "-d", "-t", String(limit)],
         onStdoutLine: (line) => {
           lines.push(line);
         }
@@ -53,7 +54,7 @@ export function createAdbIntegration(input?: {
 
       assertAdbSuccess(result, "adb logcat -d");
 
-      const entries = lines
+      return lines
         .map((line) => line.trimEnd())
         .filter((line) => line.length > 0 && !line.startsWith("---------"))
         .map((line) => ({
@@ -61,9 +62,6 @@ export function createAdbIntegration(input?: {
           text: line,
           at: clock()
         } satisfies MetroLogEntry));
-
-      const limit = options?.limit;
-      return typeof limit === "number" ? entries.slice(-limit) : entries;
     }
   };
 }
