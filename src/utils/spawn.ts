@@ -29,9 +29,10 @@ export function prepareSpawnCommand(input: {
   const args = input.args ?? [];
 
   if (platform === "win32" && /\.(cmd|bat)$/i.test(input.command)) {
+    const command = input.command.includes(" ") ? `"${input.command}"` : input.command;
     return {
       command: process.env.ComSpec ?? "cmd.exe",
-      args: ["/d", "/s", "/c", input.command, ...args]
+      args: ["/d", "/s", "/c", command, ...args]
     };
   }
 
