@@ -32,7 +32,6 @@ export function renderReleasePrBody(version: string, notes: ReleaseNotes): strin
   appendSection(lines, "Fixed", notes.fixes);
   appendSection(lines, "Changed", notes.others);
 
-  lines.push("- [ ] Merge this PR to publish");
 
   return `${lines.join("\n").trimEnd()}\n`;
 }

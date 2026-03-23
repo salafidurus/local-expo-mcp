@@ -15,6 +15,7 @@ describe("release workflow", () => {
     expect(workflow).toContain('publish_release');
     expect(workflow).toContain('.head.ref != "release/next"');
     expect(workflow).toContain('.head.ref == "release/next"');
+    expect(workflow).toContain('if any(.[]?; .head.ref == "release/next") then false');
     expect(workflow).toContain('bun run release:prepare-pr');
     expect(workflow).toContain('git checkout -B release/next');
     expect(workflow).toContain('gh pr create --base main --head release/next');

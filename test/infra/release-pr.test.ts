@@ -107,7 +107,7 @@ describe("release PR state", () => {
     expect(body).toContain("## Release 0.2.0");
     expect(body).toContain("- add device app launch tool");
     expect(body).toContain("- handle metro port reuse");
-    expect(body).toContain("- [ ] Merge this PR to publish");
+    expect(body).not.toContain("Merge this PR to publish");
   });
 
   it("replaces the existing pending release section instead of duplicating it", () => {
