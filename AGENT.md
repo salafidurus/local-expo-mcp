@@ -78,7 +78,7 @@ Do not add raw passthrough tools for hidden MCPs without a deliberate public con
 Current publishing model:
 - merged PRs labeled `publish` prepare a release PR on `release/next`
 - merging the `release/next` PR publishes to npm and creates the GitHub release
-- `.release-plan.json` and release sections in `CHANGELOG.md` are automation-owned outputs
+- `release-plan.json` and release sections in `CHANGELOG.md` are automation-owned outputs
 - non-`release/next` pull requests should not edit those release-owned files directly
 
 Important identity rule:

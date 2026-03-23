@@ -96,14 +96,14 @@ jobs:
           RELEASE_PR_BODY: ${{ needs.gate.outputs.pr_body }}
           RELEASE_SOURCE_SHA: ${{ needs.gate.outputs.source_sha }}
         run: |
-          bun run release:prepare-pr > release-plan.json
+          bun run release:prepare-pr
           cat release-plan.json
 
       - name: Commit and push release branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if git diff --quiet -- package.json CHANGELOG.md .release-plan.json; then
+          if git diff --quiet -- package.json CHANGELOG.md release-plan.json; then
             echo "No release PR changes detected"
             exit 0
           fi
@@ -111,7 +111,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B release/next
-          git add package.json CHANGELOG.md .release-plan.json
+          git add package.json CHANGELOG.md release-plan.json
           git commit -m "chore(release): ${version}"
           git push --force-with-lease origin release/next
 

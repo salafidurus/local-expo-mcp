@@ -10,7 +10,7 @@ import {
 } from "./release/release-pr.ts";
 
 const RELEASE_BRANCH = "release/next";
-const PLAN_FILE = ".release-plan.json";
+const PLAN_FILE = "release-plan.json";
 const PACKAGE_FILE = "package.json";
 const CHANGELOG_FILE = "CHANGELOG.md";
 
@@ -56,16 +56,24 @@ function main(): void {
     existingState?.nextVersion
   );
 
+  const releaseTitle = `chore(release): ${nextState.nextVersion}`;
+  const releaseBody = renderReleasePrBody(nextState.nextVersion, nextState.notes);
+
   writeFileSync(PACKAGE_FILE, `${JSON.stringify(nextPackageJson, null, 2)}\n`);
   writeFileSync(CHANGELOG_FILE, nextChangelog);
-  writeFileSync(PLAN_FILE, `${JSON.stringify({ ...nextState, sourceSha }, null, 2)}\n`);
+  writeFileSync(PLAN_FILE, `${JSON.stringify({
+    ...nextState,
+    sourceSha,
+    title: releaseTitle,
+    body: releaseBody
+  }, null, 2)}\n`);
 
   process.stdout.write(JSON.stringify({
     changed: true,
     branch: RELEASE_BRANCH,
     version: nextState.nextVersion,
-    title: `chore(release): ${nextState.nextVersion}`,
-    body: renderReleasePrBody(nextState.nextVersion, nextState.notes)
+    title: releaseTitle,
+    body: releaseBody
   }));
 }
 

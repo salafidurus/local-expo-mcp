@@ -312,7 +312,7 @@ This repo does not publish directly from a feature PR merge. It uses a two-step 
 2. The release workflow updates `release/next` with:
    - the next version in [package.json](package.json)
    - the pending release entry in [CHANGELOG.md](CHANGELOG.md)
-   - the pending release state file `.release-plan.json`
+   - the pending release state file `release-plan.json`
 3. The workflow creates or updates a PR from `release/next` into `main`.
 4. Review and merge that release PR.
 5. After the `release/next` PR is merged, the workflow:
