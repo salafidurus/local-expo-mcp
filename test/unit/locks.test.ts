@@ -42,4 +42,17 @@ describe("LockManager", () => {
 
     expect(events.sort()).toEqual(["android", "metro"]);
   });
+
+  it("clears the internal map after locks are released (preventing memory leak)", async () => {
+    const locks = new LockManager();
+    const key = "test-key";
+
+    await locks.withLock(key, async () => {
+      // Doing work
+    });
+
+    // We expect the internal map to be empty now
+    // Since it's private, we use a count getter we'll add or any cast if we change it
+    expect((locks as any).getQueueCount?.() ?? (locks as any).queues?.size).toBe(0);
+  });
 });
