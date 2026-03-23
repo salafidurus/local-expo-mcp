@@ -7,7 +7,7 @@ import type {
   MetroController,
   MetroLogEntry
 } from "../app-context.js";
-import { parseMetroReadinessLine } from "../parsers/metro-readiness.js";
+import { parseMetroReadinessLine, isMetroStatusReady } from "../parsers/metro-readiness.js";
 import {
   buildTerminateProcessCommand,
   prepareSpawnCommand,
@@ -54,6 +54,7 @@ export async function stopChildProcess(
 
   const platform = input?.platform ?? process.platform;
   const executeCommand = input?.runCommand ?? runCommand;
+  const timeoutMs = input?.timeoutMs ?? 5000;
 
   if (platform === "win32") {
     const terminate = buildTerminateProcessCommand({
@@ -64,14 +65,29 @@ export async function stopChildProcess(
     await executeCommand({
       command: terminate.command,
       args: terminate.args,
-      timeoutMs: input?.timeoutMs ?? 5000
+      timeoutMs
     });
     return;
   }
 
   await new Promise<void>((resolve) => {
-    child.once("close", () => resolve());
-    child.kill();
+    let timeoutHandle: NodeJS.Timeout | undefined;
+
+    const done = () => {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+      resolve();
+    };
+
+    child.once("close", done);
+    child.kill(); // SIGTERM
+
+    timeoutHandle = setTimeout(() => {
+      (child.kill as (signal: string) => boolean)("SIGKILL");
+      // Don't wait forever even for SIGKILL
+      setTimeout(done, 1000).unref();
+    }, timeoutMs);
   });
 }
 
@@ -313,32 +329,25 @@ async function defaultWaitForPortReady(input: {
   timeoutMs: number;
 }): Promise<boolean> {
   const deadline = Date.now() + input.timeoutMs;
+  const url = `http://${input.host}:${input.port}/status`;
 
   while (Date.now() < deadline) {
-    const reachable = await canConnect(input.host, input.port);
-    if (reachable) {
-      return true;
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(250) });
+      if (response.ok) {
+        const body = await response.text();
+        if (isMetroStatusReady(body)) {
+          return true;
+        }
+      }
+    } catch {
+      // Ignore errors (connection refused, timeout, etc.)
     }
 
     await sleep(250);
   }
 
   return false;
-}
-
-async function canConnect(host: string, port: number): Promise<boolean> {
-  return await new Promise<boolean>((resolve) => {
-    const socket = createConnection({ host, port });
-
-    const done = (value: boolean) => {
-      socket.destroy();
-      resolve(value);
-    };
-
-    socket.once("connect", () => done(true));
-    socket.once("error", () => done(false));
-    socket.setTimeout(250, () => done(false));
-  });
 }
 
 function sleep(ms: number): Promise<void> {

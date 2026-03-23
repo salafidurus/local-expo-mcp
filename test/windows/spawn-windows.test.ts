@@ -17,6 +17,19 @@ describe("prepareSpawnCommand", () => {
     expect(prepared.args).toEqual(["/d", "/s", "/c", "npx.cmd", "expo", "start"]);
   });
 
+  it("handles spaces in command paths on Windows", () => {
+    const commandWithSpaces = "C:\\Program Files\\nodejs\\npx.cmd";
+    const prepared = prepareSpawnCommand({
+      platform: "win32",
+      command: commandWithSpaces,
+      args: ["expo", "start"]
+    });
+
+    expect(prepared.command.toLowerCase()).toContain("cmd.exe");
+    // We expect the command with spaces to be properly quoted when passed to cmd /c
+    expect(prepared.args).toEqual(["/d", "/s", "/c", `"${commandWithSpaces}"`, "expo", "start"]);
+  });
+
   it("leaves normal executables unchanged", () => {
     const prepared = prepareSpawnCommand({
       platform: "win32",

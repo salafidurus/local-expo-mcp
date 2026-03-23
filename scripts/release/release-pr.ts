@@ -43,8 +43,8 @@ export function upsertReleaseChangelog(
   notes: ReleaseNotes,
   previousPendingVersion?: string
 ): string {
-  const section = renderChangelogSection(version, isoDate, notes);
   const normalized = changelog.replace(/\r\n/g, "\n");
+  const section = renderChangelogSection(version, isoDate, notes);
 
   if (previousPendingVersion) {
     const replaced = replaceReleaseSection(normalized, previousPendingVersion, section);
@@ -53,18 +53,20 @@ export function upsertReleaseChangelog(
     }
   }
 
-  const unreleasedHeader = "## [Unreleased]";
-  const unreleasedIndex = normalized.indexOf(unreleasedHeader);
-  if (unreleasedIndex === -1) {
-    return `${normalized.trimEnd()}\n\n${section}`;
+  // Purely automated insertion: find the first version header or insert after intro
+  const firstVersionIndex = normalized.indexOf("\n## [");
+  if (firstVersionIndex !== -1) {
+    return `${normalized.slice(0, firstVersionIndex)}\n\n${section}\n${normalized.slice(firstVersionIndex).trimStart()}`;
   }
 
-  const afterUnreleased = normalized.indexOf("\n## [", unreleasedIndex + unreleasedHeader.length);
-  if (afterUnreleased === -1) {
-    return `${normalized.trimEnd()}\n\n${section}`;
+  // Fallback: after the first two lines (Title + empty line) or at top
+  const secondNewline = normalized.indexOf("\n", normalized.indexOf("\n") + 1);
+  if (secondNewline !== -1) {
+    const insertAt = secondNewline + 1;
+    return `${normalized.slice(0, insertAt)}\n${section}\n${normalized.slice(insertAt).trimStart()}`;
   }
 
-  return `${normalized.slice(0, afterUnreleased)}\n\n${section}${normalized.slice(afterUnreleased)}`;
+  return `${section}\n\n${normalized}`;
 }
 
 function replaceReleaseSection(changelog: string, version: string, nextSection: string): string {

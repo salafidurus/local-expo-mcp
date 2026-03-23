@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseMetroReadinessLine } from "../../src/parsers/metro-readiness.js";
+import { parseMetroReadinessLine, isMetroStatusReady } from "../../src/parsers/metro-readiness.js";
 
 describe("parseMetroReadinessLine", () => {
   it("detects a valid HTTP Metro readiness marker", () => {
@@ -40,5 +40,18 @@ describe("parseMetroReadinessLine", () => {
       devServerUrl: undefined,
       protocolHint: undefined
     });
+  });
+});
+
+describe("isMetroStatusReady", () => {
+  it("returns true for a valid Metro status body", () => {
+    expect(isMetroStatusReady("packager-status:running")).toBe(true);
+    expect(isMetroStatusReady(" packager-status:running ")).toBe(true);
+  });
+
+  it("returns false for invalid bodies", () => {
+    expect(isMetroStatusReady("not found")).toBe(false);
+    expect(isMetroStatusReady("packager-status:stopped")).toBe(false);
+    expect(isMetroStatusReady("")).toBe(false);
   });
 });

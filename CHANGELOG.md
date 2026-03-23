@@ -2,13 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on Keep a Changelog.
-This project aims to follow Semantic Versioning once the package is ready for public release.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-03-22
 
 ### Added
-- Bun-based local development, test, and CI workflow.
 - Initial MCP orchestration scaffolding for Metro, hidden `expo-mcp`, Android runs, `adb` fallback device operations, hidden `mobile-mcp` screenshots, and session summaries.
 - Unit and integration test coverage for the current Windows and Android-first scope.
 - Installed-package bin resolution for hidden MCP child processes.
@@ -17,7 +16,7 @@ This project aims to follow Semantic Versioning once the package is ready for pu
 - Required live smoke tests for active Android and Metro workflows.
 - Repo-owned live Expo project scaffolding for passing and broken Metro reproduction cases.
 - Repository automation for Dependabot, CI, release packaging, and a maintained changelog.
-- README, MIT license, and third-party notices.
+- Expanded mobile MCP forwarding.
 
 ### Changed
 - Pinned `mobile-mcp` to a specific version so dependency updates are explicit and testable.
@@ -25,27 +24,10 @@ This project aims to follow Semantic Versioning once the package is ready for pu
 - Split the default test suite from the live test suite and added `test:acceptance`.
 - Default live Metro smoke now targets the repo-owned passing Expo app unless overridden.
 
-
-
-## [0.2.0] - 2026-03-22
-
-### Added
-
-- expand mobile mcp forwarding
-
 ### Fixed
+- Removed release label dependency in CI workflow.
 
-- remove release label dependency
-## [0.2.0] - 2026-03-22
-
-### Added
-
-- expand mobile mcp forwarding
-
-### Fixed
-
-- remove release label dependency
-## [0.1.0] - TBD
+## [0.1.0] - 2026-03-21
 
 ### Added
 - Initial project scaffold.

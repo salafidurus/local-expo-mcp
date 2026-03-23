@@ -1,15 +1,20 @@
 export class LockManager {
-  readonly #queues = new Map<string, Promise<void>>();
+  private readonly queues = new Map<string, Promise<void>>();
+
+  getQueueCount(): number {
+    return this.queues.size;
+  }
 
   async withLock<T>(key: string, work: () => Promise<T> | T): Promise<T> {
-    const previous = this.#queues.get(key) ?? Promise.resolve();
+    const previous = this.queues.get(key) ?? Promise.resolve();
 
     let release!: () => void;
     const current = new Promise<void>((resolve) => {
       release = resolve;
     });
 
-    this.#queues.set(key, previous.then(() => current));
+    const next = previous.then(() => current);
+    this.queues.set(key, next);
 
     await previous;
 
@@ -17,9 +22,8 @@ export class LockManager {
       return await work();
     } finally {
       release();
-      const latest = this.#queues.get(key);
-      if (latest === current || latest === previous.then(() => current)) {
-        this.#queues.delete(key);
+      if (this.queues.get(key) === next) {
+        this.queues.delete(key);
       }
     }
   }

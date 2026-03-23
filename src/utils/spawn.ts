@@ -29,9 +29,10 @@ export function prepareSpawnCommand(input: {
   const args = input.args ?? [];
 
   if (platform === "win32" && /\.(cmd|bat)$/i.test(input.command)) {
+    const command = input.command.includes(" ") ? `"${input.command}"` : input.command;
     return {
       command: process.env.ComSpec ?? "cmd.exe",
-      args: ["/d", "/s", "/c", input.command, ...args]
+      args: ["/d", "/s", "/c", command, ...args]
     };
   }
 
@@ -60,6 +61,8 @@ export function buildTerminateProcessCommand(input: {
   };
 }
 
+export const PROCESS_TERMINATION_GRACE_PERIOD = 5000;
+
 export async function runCommand(input: RunCommandInput): Promise<RunCommandResult> {
   const prepared = prepareSpawnCommand({
     command: input.command,
@@ -73,6 +76,7 @@ export async function runCommand(input: RunCommandInput): Promise<RunCommandResu
 
   let timedOut = false;
   let timeoutHandle: NodeJS.Timeout | undefined;
+  let fallbackHandle: NodeJS.Timeout | undefined;
 
   if (child.stdout && input.onStdoutLine) {
     const rl = createInterface({ input: child.stdout });
@@ -87,22 +91,32 @@ export async function runCommand(input: RunCommandInput): Promise<RunCommandResu
   if (input.timeoutMs !== undefined) {
     timeoutHandle = setTimeout(() => {
       timedOut = true;
-      child.kill();
+      child.kill(); // SIGTERM
+
+      fallbackHandle = setTimeout(() => {
+        if (process.platform === "win32") {
+          if (child.pid) {
+            const terminate = buildTerminateProcessCommand({ pid: child.pid, platform: "win32" });
+            spawn(terminate.command, terminate.args, { stdio: "ignore" }).unref();
+          }
+        } else {
+          (child.kill as (signal: string) => boolean)("SIGKILL");
+        }
+      }, PROCESS_TERMINATION_GRACE_PERIOD);
+      fallbackHandle.unref();
     }, input.timeoutMs);
   }
 
   return await new Promise((resolve, reject) => {
     child.on("error", (error) => {
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-      }
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (fallbackHandle) clearTimeout(fallbackHandle);
       reject(error);
     });
 
     child.on("close", (code) => {
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-      }
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (fallbackHandle) clearTimeout(fallbackHandle);
 
       resolve({
         exitCode: code ?? (timedOut ? 1 : 0),

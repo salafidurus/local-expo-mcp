@@ -1,6 +1,6 @@
 * @olanrewajufarooq
 CHANGELOG.md @olanrewajufarooq
-.release-plan.json @olanrewajufarooq
+release-plan.json @olanrewajufarooq
 .github/workflows/release.yml @olanrewajufarooq
 scripts/release/ @olanrewajufarooq
 scripts/create-release-pr.ts @olanrewajufarooq

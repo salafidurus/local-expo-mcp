@@ -124,6 +124,12 @@ Claude Desktop config uses the same `mcpServers` JSON shape. On Windows that fil
 
 Codex supports MCP in its shared CLI and IDE config.
 
+Codex CLI command:
+
+```bash
+codex mcp add local-expo -- npx -y local-expo-mcp
+```
+
 Project-scoped `.codex/config.toml`:
 
 ```toml
@@ -157,7 +163,19 @@ codex mcp get local-expo
 
 Gemini CLI supports MCP servers through `~/.gemini/settings.json`.
 
-Example:
+Gemini CLI command:
+
+```bash
+gemini mcp add local-expo npx -y local-expo-mcp
+```
+
+If your Windows Gemini setup cannot launch `npx` directly, use:
+
+```bash
+gemini mcp add local-expo cmd /c npx -y local-expo-mcp
+```
+
+Example `settings.json`:
 
 ```json
 {
@@ -191,7 +209,15 @@ After configuring it, restart Gemini CLI and inspect MCP status from the CLI.
 
 OpenCode supports local MCP servers in `opencode.json` or `opencode.jsonc`.
 
-Example:
+OpenCode CLI command:
+
+```bash
+opencode mcp add
+```
+
+This will prompt you for the server details. Choose `local` (stdio) and provide the command `npx` with arguments `-y local-expo-mcp`.
+
+Example `opencode.json`:
 
 ```json
 {
@@ -207,7 +233,7 @@ Example:
 }
 ```
 
-OpenCode also exposes MCP helper commands such as `opencode mcp add` and `opencode mcp list`.
+OpenCode also exposes MCP helper commands such as `opencode mcp list`.
 
 ## Public Tools
 
@@ -286,7 +312,7 @@ This repo does not publish directly from a feature PR merge. It uses a two-step 
 2. The release workflow updates `release/next` with:
    - the next version in [package.json](package.json)
    - the pending release entry in [CHANGELOG.md](CHANGELOG.md)
-   - the pending release state file `.release-plan.json`
+   - the pending release state file `release-plan.json`
 3. The workflow creates or updates a PR from `release/next` into `main`.
 4. Review and merge that release PR.
 5. After the `release/next` PR is merged, the workflow:
