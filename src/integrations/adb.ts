@@ -14,8 +14,26 @@ export function parseAdbDevicesOutput(lines: string[]): AdbDevice[] {
     .map(([id, state]) => ({
       id,
       platform: "android" as const,
-      state
+      state,
+      guidance: getGuidanceForState(state)
     }));
+}
+
+function getGuidanceForState(state: string): string | undefined {
+  switch (state) {
+    case "unauthorized":
+      return "Device unauthorized. Please accept the RSA key fingerprint prompt on your device screen.";
+    case "offline":
+      return "Device is offline. Try toggling USB debugging or reconnecting the cable.";
+    case "recovery":
+      return "Device is in recovery mode. Please reboot the device to normal mode.";
+    case "sideload":
+      return "Device is in sideload mode. Please reboot the device.";
+    case "no permissions":
+      return "Insufficient permissions to access the device. Try running adb as root or check udev rules on Linux.";
+    default:
+      return undefined;
+  }
 }
 
 export function createAdbIntegration(input?: {

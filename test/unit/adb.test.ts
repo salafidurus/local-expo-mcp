@@ -8,12 +8,16 @@ describe("parseAdbDevicesOutput", () => {
       "List of devices attached",
       "emulator-5554\tdevice",
       "R58M123ABC\toffline",
+      "unauthorized-dev\tunauthorized",
+      "recovery-dev\trecovery",
       ""
     ]);
 
     expect(parsed).toEqual([
-      { id: "emulator-5554", platform: "android", state: "device" },
-      { id: "R58M123ABC", platform: "android", state: "offline" }
+      { id: "emulator-5554", platform: "android", state: "device", guidance: undefined },
+      { id: "R58M123ABC", platform: "android", state: "offline", guidance: "Device is offline. Try toggling USB debugging or reconnecting the cable." },
+      { id: "unauthorized-dev", platform: "android", state: "unauthorized", guidance: "Device unauthorized. Please accept the RSA key fingerprint prompt on your device screen." },
+      { id: "recovery-dev", platform: "android", state: "recovery", guidance: "Device is in recovery mode. Please reboot the device to normal mode." }
     ]);
   });
 });
@@ -37,8 +41,8 @@ describe("createAdbIntegration", () => {
       })
     );
     expect(devices).toEqual([
-      { id: "emulator-5554", platform: "android", state: "device" },
-      { id: "R58M123ABC", platform: "android", state: "offline" }
+      { id: "emulator-5554", platform: "android", state: "device", guidance: undefined },
+      { id: "R58M123ABC", platform: "android", state: "offline", guidance: "Device is offline. Try toggling USB debugging or reconnecting the cable." }
     ]);
   });
 

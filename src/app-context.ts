@@ -87,6 +87,7 @@ export type AdbDevice = {
   id: string;
   platform: "android";
   state: string;
+  guidance?: string;
 };
 
 export type AdbIntegration = {
