@@ -76,10 +76,14 @@ Do not add raw passthrough tools for hidden MCPs without a deliberate public con
 ## Release Rules
 
 Current publishing model:
-- CI runs install, commitlint, tests, and build
-- semantic-release manages versioning and changelog
-- merged PRs labeled `publish` can trigger publishing
-- stale publish automation can publish when there has been no publish for 7 days and a release is pending
+- merged PRs labeled `publish` prepare a release PR on `release/next`
+- merging the `release/next` PR publishes to npm and creates the GitHub release
+- `.release-plan.json` and release sections in `CHANGELOG.md` are automation-owned outputs
+- non-`release/next` pull requests should not edit those release-owned files directly
+
+Important identity rule:
+- if your branch protection requires review by someone other than the PR author, the `SALAFIDURUS_PR_WRITE` token should belong to a machine user or bot account, not your own user account
+- if the token belongs to your own account, the generated `release/next` PR will appear authored by you and may block self-approval
 
 ## Docs Split
 

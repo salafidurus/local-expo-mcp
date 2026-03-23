@@ -39,6 +39,16 @@ jobs:
         if: github.event_name != 'pull_request'
         run: bun run commitlint
 
+      - name: Guard automation-owned release files
+        if: github.event_name == 'pull_request' && github.head_ref != 'release/next'
+        run: |
+          set -euo pipefail
+          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          if echo "$changed" | grep -E '^(CHANGELOG\.md|\.release-plan\.json)$' >/dev/null; then
+            echo "Automation-owned release files may only change on release/next PRs."
+            exit 1
+          fi
+
       - name: Build
         run: bun run build
 
