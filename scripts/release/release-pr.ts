@@ -56,7 +56,7 @@ export function upsertReleaseChangelog(
 
     if (nextSectionIndex !== -1) {
       manualNotes = normalized.slice(afterUnreleasedHeader, nextSectionIndex).trim();
-      baseChangelog = normalized.slice(0, afterUnreleasedHeader) + "\n" + normalized.slice(nextSectionIndex);
+      baseChangelog = normalized.slice(0, afterUnreleasedHeader) + "\n\n" + normalized.slice(nextSectionIndex).trimStart();
     } else {
       manualNotes = normalized.slice(afterUnreleasedHeader).trim();
       baseChangelog = normalized.slice(0, afterUnreleasedHeader) + "\n";
@@ -72,14 +72,27 @@ export function upsertReleaseChangelog(
     }
   }
 
-  // If no previous pending section was found to replace, insert it after [Unreleased]
-  const newUnreleasedIndex = baseChangelog.indexOf(unreleasedHeader);
-  if (newUnreleasedIndex === -1) {
-    return `${baseChangelog.trimEnd()}\n\n${section}`;
+  // Find insertion point: after [Unreleased] header, or after intro, or at top
+  const finalUnreleasedIndex = baseChangelog.indexOf(unreleasedHeader);
+  if (finalUnreleasedIndex !== -1) {
+    const insertAt = finalUnreleasedIndex + unreleasedHeader.length;
+    return `${baseChangelog.slice(0, insertAt)}\n\n${section}\n${baseChangelog.slice(insertAt).trimStart()}`;
   }
 
-  const afterUnreleased = newUnreleasedIndex + unreleasedHeader.length;
-  return `${baseChangelog.slice(0, afterUnreleased)}\n\n${section}${baseChangelog.slice(afterUnreleased)}`;
+  // If [Unreleased] is missing, look for the first versioned header
+  const firstVersionIndex = baseChangelog.indexOf("\n## [");
+  if (firstVersionIndex !== -1) {
+    return `${baseChangelog.slice(0, firstVersionIndex)}\n\n${unreleasedHeader}\n\n${section}\n${baseChangelog.slice(firstVersionIndex).trimStart()}`;
+  }
+
+  // Fallback: after the first paragraph or at top
+  const firstParagraphEnd = baseChangelog.indexOf("\n\n");
+  if (firstParagraphEnd !== -1) {
+    const insertAt = firstParagraphEnd + 2;
+    return `${baseChangelog.slice(0, insertAt)}${unreleasedHeader}\n\n${section}\n\n${baseChangelog.slice(insertAt)}`;
+  }
+
+  return `${unreleasedHeader}\n\n${section}\n\n${baseChangelog}`;
 }
 
 function replaceReleaseSection(changelog: string, version: string, nextSection: string): string {
