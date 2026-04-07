@@ -83,9 +83,9 @@ jobs:
           fi
           git commit -m "chore(release): v${version}"
           git push --force-with-lease origin release/next
-
-          if gh pr view release/next --json number >/dev/null 2>&1; then
-            gh pr edit release/next --base main --title "chore(release): v${version}" --body "Automated release for v${version}."
+          existing_pr=$(gh pr list --head release/next --base main --state open --json number --jq '.[0].number // ""')
+          if [ -n "$existing_pr" ]; then
+            gh pr edit "$existing_pr" --title "chore(release): v${version}" --body "Automated release for v${version}."
           else
             gh pr create --base main --head release/next --title "chore(release): v${version}" --body "Automated release for v${version}."
           fi
