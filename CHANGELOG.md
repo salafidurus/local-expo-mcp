@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.5.1] - 2026-04-07
+
+### Fixed
+
+- resolve vendor packages from module location, not user cwd
+
 ## [0.5.0] - 2026-04-07
 
 ### Added
