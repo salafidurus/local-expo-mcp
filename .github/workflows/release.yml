@@ -20,6 +20,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          token: ${{ secrets.SALAFIDURUS_PR_WRITE }}
 
       - name: Determine mode
         id: guard
@@ -70,7 +71,7 @@ jobs:
       - name: Create or update release PR
         if: steps.guard.outputs.mode == 'prepare' && steps.prepare.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SALAFIDURUS_PR_WRITE }}
         run: |
           version="${{ steps.prepare.outputs.version }}"
           git config user.name "github-actions[bot]"
@@ -99,7 +100,7 @@ jobs:
       - name: Create release tag
         if: steps.guard.outputs.mode == 'publish'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SALAFIDURUS_PR_WRITE }}
         run: |
           version=$(node -p "require('./package.json').version")
           tag="v${version}"
@@ -111,7 +112,7 @@ jobs:
       - name: Create GitHub release
         if: steps.guard.outputs.mode == 'publish'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SALAFIDURUS_PR_WRITE }}
         run: |
           version=$(node -p "require('./package.json').version")
           tag="v${version}"
