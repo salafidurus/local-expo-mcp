@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   id-token: write
+  pull-requests: write
 
 jobs:
   release:
@@ -20,43 +21,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Skip if this is a release commit
+      - name: Determine mode
         id: guard
         run: |
           subject=$(git log -1 --pretty=format:"%s")
           if echo "$subject" | grep -qE "^chore\(release\):"; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "mode=publish" >> "$GITHUB_OUTPUT"
           else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "mode=prepare" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup Bun
-        if: steps.guard.outputs.skip == 'false'
+        if: steps.guard.outputs.mode == 'prepare' || steps.guard.outputs.mode == 'publish'
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
 
       - name: Setup Node
-        if: steps.guard.outputs.skip == 'false'
+        if: steps.guard.outputs.mode == 'prepare' || steps.guard.outputs.mode == 'publish'
         uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
-        if: steps.guard.outputs.skip == 'false'
+        if: steps.guard.outputs.mode == 'prepare' || steps.guard.outputs.mode == 'publish'
         run: bun install --frozen-lockfile
 
       - name: Build
-        if: steps.guard.outputs.skip == 'false'
+        if: steps.guard.outputs.mode == 'prepare' || steps.guard.outputs.mode == 'publish'
         run: bun run build
 
       - name: Run tests
-        if: steps.guard.outputs.skip == 'false'
+        if: steps.guard.outputs.mode == 'prepare' || steps.guard.outputs.mode == 'publish'
         run: bunx vitest run
 
       - name: Prepare release
-        if: steps.guard.outputs.skip == 'false'
+        if: steps.guard.outputs.mode == 'prepare'
         id: prepare
         run: |
           result=$(bun run release:do)
@@ -66,32 +67,53 @@ jobs:
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Commit and tag release
-        if: steps.guard.outputs.skip == 'false' && steps.prepare.outputs.changed == 'true'
+      - name: Create or update release PR
+        if: steps.guard.outputs.mode == 'prepare' && steps.prepare.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           version="${{ steps.prepare.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B release/next
           git add package.json CHANGELOG.md
-          git commit -m "chore(release): v${version} [skip ci]"
-          git tag "v${version}"
-          git push origin main
-          git push origin "v${version}"
+          if git diff --cached --quiet; then
+            echo "No release changes staged"
+            exit 0
+          fi
+          git commit -m "chore(release): v${version}"
+          git push --force-with-lease origin release/next
+
+          if gh pr view release/next --json number >/dev/null 2>&1; then
+            gh pr edit release/next --base main --title "chore(release): v${version}" --body "Automated release for v${version}."
+          else
+            gh pr create --base main --head release/next --title "chore(release): v${version}" --body "Automated release for v${version}."
+          fi
 
       - name: Publish to npm
-        if: steps.guard.outputs.skip == 'false' && steps.prepare.outputs.changed == 'true'
+        if: steps.guard.outputs.mode == 'publish'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: bun run release:publish
 
-      - name: Create GitHub release
-        if: steps.guard.outputs.skip == 'false' && steps.prepare.outputs.changed == 'true'
+      - name: Create release tag
+        if: steps.guard.outputs.mode == 'publish'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          version="${{ steps.prepare.outputs.version }}"
+          version=$(node -p "require('./package.json').version")
+          tag="v${version}"
+          if ! git rev-parse "$tag" >/dev/null 2>&1; then
+            git tag "$tag"
+            git push origin "$tag"
+          fi
+
+      - name: Create GitHub release
+        if: steps.guard.outputs.mode == 'publish'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./package.json').version")
           tag="v${version}"
           node - <<'NODE' > release-notes.md
           const fs = require('node:fs');
