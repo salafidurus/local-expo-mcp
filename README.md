@@ -96,8 +96,10 @@ Claude Code supports local stdio MCP servers. Anthropic documents both CLI-based
 Claude Code CLI, native Windows-safe form:
 
 ```bash
-claude mcp add --transport stdio local-expo -- cmd /c npx -y local-expo-mcp
+claude mcp add --transport stdio local-expo -- cmd /c npx local-expo-mcp
 ```
+
+Note: omit `-y` on Windows — Claude Code parses it as an unknown option before passing args through.
 
 Claude Code CLI, typical macOS/Linux form:
 
@@ -112,7 +114,7 @@ Claude project config via `.mcp.json`:
   "mcpServers": {
     "local-expo": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "local-expo-mcp"]
+      "args": ["/c", "npx", "local-expo-mcp"]
     }
   }
 }
@@ -204,6 +206,40 @@ If your Windows Gemini setup cannot launch `npx` directly, use:
 ```
 
 After configuring it, restart Gemini CLI and inspect MCP status from the CLI.
+
+### GitHub Copilot
+
+GitHub Copilot in VS Code supports MCP servers via a `.vscode/mcp.json` file in your workspace or via VS Code user settings.
+
+Workspace config (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "local-expo": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "local-expo-mcp"]
+    }
+  }
+}
+```
+
+On native Windows, wrap the command:
+
+```json
+{
+  "servers": {
+    "local-expo": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "local-expo-mcp"]
+    }
+  }
+}
+```
+
+After saving, open the Copilot Chat panel, switch to **Agent** mode, and the `local-expo` server will appear in the tools list.
 
 ### OpenCode
 
