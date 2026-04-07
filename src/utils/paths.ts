@@ -58,3 +58,8 @@ function resolveBinPath(
 export function normalizeProjectRoot(projectRoot: string): string {
   return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
 }
+
+export function readPackageVersion(): string {
+  const packageJson = require("../../package.json") as { version: string };
+  return packageJson.version;
+}

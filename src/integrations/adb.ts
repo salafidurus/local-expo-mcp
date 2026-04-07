@@ -5,6 +5,22 @@ import {
   type RunCommandResult
 } from "../utils/spawn.js";
 
+export function parseAdbTimestamp(line: string): number | undefined {
+  const match = line.match(/^(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{3})/);
+  if (!match) return undefined;
+  const [, month, day, hour, minute, second, ms] = match;
+  const year = new Date().getFullYear();
+  return new Date(
+    year,
+    parseInt(month) - 1,
+    parseInt(day),
+    parseInt(hour),
+    parseInt(minute),
+    parseInt(second),
+    parseInt(ms)
+  ).getTime();
+}
+
 export function parseAdbDevicesOutput(lines: string[]): AdbDevice[] {
   return lines
     .map((line) => line.trim())
@@ -78,7 +94,7 @@ export function createAdbIntegration(input?: {
         .map((line) => ({
           level: classifyAdbLogLevel(line),
           text: line,
-          at: clock()
+          at: parseAdbTimestamp(line) ?? clock()
         } satisfies MetroLogEntry));
     }
   };

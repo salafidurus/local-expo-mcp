@@ -34,13 +34,14 @@ export function createMetroStartHandler(context: AppContext) {
         }
       });
 
+      const startedAt = context.clock();
       context.runtime.metroControllers.set(projectRoot, controller);
       context.processStore.upsert({
         name: "metro",
         ownerKey,
         pid: controller.pid,
         cwd: projectRoot,
-        startedAt: context.clock(),
+        startedAt,
         status: "running",
         command: "expo",
         args: ["start"]
@@ -51,7 +52,7 @@ export function createMetroStartHandler(context: AppContext) {
           pid: controller.pid,
           port: controller.port,
           devServerUrl: controller.devServerUrl,
-          startedAt: context.clock()
+          startedAt
         }
       });
 

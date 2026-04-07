@@ -241,6 +241,26 @@ describe("metro lifecycle", () => {
     });
   });
 
+  it("records identical startedAt in processStore and sessionStore", async () => {
+    let tick = 0;
+    const fakeExpoCli = createFakeExpoCli();
+    const context = createAppContext({
+      clock: () => ++tick,
+      integrations: { expoCli: fakeExpoCli.integration }
+    });
+
+    const startMetro = createMetroStartHandler(context);
+    const requestedPort = await findAvailableTcpPort();
+    await startMetro({ projectRoot: "C:/dev/app", port: requestedPort });
+
+    const sessionStartedAt = context.sessionStore.get("C:/dev/app")?.metro?.startedAt;
+    const processStartedAt = context.processStore.get("metro", "project:C:/dev/app")?.startedAt;
+
+    expect(sessionStartedAt).toBeDefined();
+    expect(processStartedAt).toBeDefined();
+    expect(sessionStartedAt).toBe(processStartedAt);
+  });
+
   it("returns existing healthy Metro session on repeated start", async () => {
     let startCount = 0;
     const context = createAppContext({

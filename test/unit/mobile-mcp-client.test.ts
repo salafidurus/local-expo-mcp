@@ -131,10 +131,32 @@ describe("createMobileMcpIntegration", () => {
     expect(callTool).toHaveBeenCalledTimes(4);
   });
 
+  it("initializes before listDevices, recentLogs, launchApp, terminateApp, and foregroundApp", async () => {
+    const connect = vi.fn(async () => undefined);
+    const callTool = vi
+      .fn()
+      .mockResolvedValue({ content: [{ type: "text", text: JSON.stringify([]) }] });
+
+    const integration = createMobileMcpIntegration({
+      resolvePackageBin: vi.fn(async () => "C:/deps/mobile-mcp/dist/index.js"),
+      createClient: vi.fn(() => ({ connect, callTool })),
+      createTransport: vi.fn(() => ({ pid: 9876 })),
+      mkdir: vi.fn(async () => undefined),
+      writeFile: vi.fn(async () => undefined)
+    });
+
+    await integration.listDevices!();
+
+    expect(callTool).toHaveBeenNthCalledWith(1, { name: "mobile_init", arguments: {} });
+    expect(callTool).toHaveBeenNthCalledWith(2, { name: "mobile_list_devices", arguments: {} });
+    expect(callTool).toHaveBeenCalledTimes(2);
+  });
+
   it("forwards device listing, logs, app launch, app terminate, and foreground app queries", async () => {
     const connect = vi.fn(async () => undefined);
     const callTool = vi
       .fn()
+      .mockResolvedValueOnce({ content: [{ type: "text", text: "init" }] })
       .mockResolvedValueOnce({ content: [{ type: "text", text: JSON.stringify([{ id: "emulator-5554", platform: "android", state: "device" }]) }] })
       .mockResolvedValueOnce({ content: [{ type: "text", text: JSON.stringify([{ level: "info", text: "hello", at: 123 }]) }] })
       .mockResolvedValueOnce({ content: [{ type: "text", text: JSON.stringify({ appId: "com.example.app", deviceId: "emulator-5554", status: "launched" }) }] })
@@ -172,22 +194,26 @@ describe("createMobileMcpIntegration", () => {
 
     expect(connect).toHaveBeenCalledTimes(1);
     expect(callTool).toHaveBeenNthCalledWith(1, {
-      name: "mobile_list_devices",
+      name: "mobile_init",
       arguments: {}
     });
     expect(callTool).toHaveBeenNthCalledWith(2, {
+      name: "mobile_list_devices",
+      arguments: {}
+    });
+    expect(callTool).toHaveBeenNthCalledWith(3, {
       name: "mobile_recent_logs",
       arguments: { limit: 5 }
     });
-    expect(callTool).toHaveBeenNthCalledWith(3, {
+    expect(callTool).toHaveBeenNthCalledWith(4, {
       name: "mobile_launch_app",
       arguments: { appId: "com.example.app", deviceId: "emulator-5554" }
     });
-    expect(callTool).toHaveBeenNthCalledWith(4, {
+    expect(callTool).toHaveBeenNthCalledWith(5, {
       name: "mobile_terminate_app",
       arguments: { appId: "com.example.app", deviceId: "emulator-5554" }
     });
-    expect(callTool).toHaveBeenNthCalledWith(5, {
+    expect(callTool).toHaveBeenNthCalledWith(6, {
       name: "mobile_foreground_app",
       arguments: { deviceId: "emulator-5554" }
     });

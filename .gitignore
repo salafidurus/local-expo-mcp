@@ -5,3 +5,4 @@ coverage/
 .husky/_/
 *.log
 .DS_Store
+.claude/
