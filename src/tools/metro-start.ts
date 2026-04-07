@@ -1,6 +1,7 @@
 import { okResult } from "../mcp/responses.js";
 import type { AppContext } from "../app-context.js";
 import { findAvailableTcpPort, isTcpPortAvailable } from "../utils/ports.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
 export function createMetroStartHandler(context: AppContext) {
   return async function metroStart(input: {
@@ -77,6 +78,3 @@ async function resolveMetroPort(requestedPort?: number): Promise<number> {
   return await findAvailableTcpPort();
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}

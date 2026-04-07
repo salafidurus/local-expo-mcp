@@ -1,5 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { resolvePackageBin } from "../../src/utils/paths.js";
+import { normalizeProjectRoot, resolvePackageBin } from "../../src/utils/paths.js";
+
+describe("normalizeProjectRoot", () => {
+  it("converts backslashes to forward slashes", () => {
+    expect(normalizeProjectRoot("C:\\dev\\app")).toBe("C:/dev/app");
+  });
+
+  it("strips a trailing slash", () => {
+    expect(normalizeProjectRoot("C:/dev/app/")).toBe("C:/dev/app");
+  });
+
+  it("strips multiple trailing slashes", () => {
+    expect(normalizeProjectRoot("C:/dev/app///")).toBe("C:/dev/app");
+  });
+
+  it("leaves a clean path unchanged", () => {
+    expect(normalizeProjectRoot("C:/dev/app")).toBe("C:/dev/app");
+  });
+});
 
 describe("resolvePackageBin", () => {
   it("resolves the expo-mcp bin from installed package metadata", async () => {

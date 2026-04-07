@@ -54,3 +54,7 @@ function resolveBinPath(
 
   return entries[0];
 }
+
+export function normalizeProjectRoot(projectRoot: string): string {
+  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
+}

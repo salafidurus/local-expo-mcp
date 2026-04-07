@@ -2,6 +2,7 @@ import { errorResult } from "../mcp/responses.js";
 import { parseGradleFailure } from "../parsers/gradle-parser.js";
 import { createError } from "../utils/errors.js";
 import type { AppContext } from "../app-context.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
 export function createAndroidRunHandler(context: AppContext) {
   return async function androidRun(input: { projectRoot: string }) {
@@ -78,6 +79,3 @@ export function createAndroidRunHandler(context: AppContext) {
   };
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}

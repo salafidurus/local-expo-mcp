@@ -26,6 +26,8 @@ export type ProjectSessionState = {
   lastAndroidRun?: AndroidRunState;
 };
 
+import { normalizeProjectRoot } from "../utils/paths.js";
+
 export class SessionStore {
   readonly #sessions = new Map<string, ProjectSessionState>();
 
@@ -61,6 +63,3 @@ export class SessionStore {
   }
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}

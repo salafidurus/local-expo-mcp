@@ -1,6 +1,7 @@
 import { okResult } from "../mcp/responses.js";
 import { parseMetroErrorText } from "../parsers/metro-parser.js";
 import type { AppContext } from "../app-context.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
 export function createMetroErrorsRecentHandler(context: AppContext) {
   return async function metroErrorsRecent(input: { projectRoot: string; limit?: number }) {
@@ -24,6 +25,3 @@ export function createMetroErrorsRecentHandler(context: AppContext) {
   };
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}

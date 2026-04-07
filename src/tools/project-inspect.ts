@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { errorResult, okResult } from "../mcp/responses.js";
 import { createError } from "../utils/errors.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
 export type InspectProjectInput = {
   projectRoot: string;
@@ -98,6 +99,3 @@ function detectPackageManager(projectRoot: string, packageJson: { packageManager
   return "npm";
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}
