@@ -15,12 +15,10 @@ type TransportLike = {
 
 export function createExpoMcpIntegration(input?: {
   clock?: () => number;
-  cwd?: string;
   nodeCommand?: string;
   resolvePackageBin?: (input: {
     packageName: string;
     binName?: string;
-    cwd?: string;
   }) => Promise<string>;
   createClient?: () => McpClientLike;
   createTransport?: (input: {
@@ -31,7 +29,6 @@ export function createExpoMcpIntegration(input?: {
   }) => TransportLike;
 }): ExpoMcpIntegration {
   const clock = input?.clock ?? (() => Date.now());
-  const cwd = input?.cwd ?? process.cwd();
   const nodeCommand = input?.nodeCommand ?? process.execPath;
   const resolvePackageBin = input?.resolvePackageBin ?? defaultResolvePackageBin;
   const createClient =
@@ -54,8 +51,7 @@ export function createExpoMcpIntegration(input?: {
     async attach({ projectRoot, devServerUrl }) {
       const executablePath = await resolvePackageBin({
         packageName: "expo-mcp",
-        binName: "expo-mcp",
-        cwd
+        binName: "expo-mcp"
       });
 
       const transport = createTransport({

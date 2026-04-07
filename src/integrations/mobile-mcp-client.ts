@@ -47,7 +47,6 @@ export function createMobileMcpIntegration(input?: {
   resolvePackageBin?: (input: {
     packageName: string;
     binName?: string;
-    cwd?: string;
   }) => Promise<string>;
   createClient?: () => McpClientLike;
   createTransport?: (input: {
@@ -210,8 +209,7 @@ export function createMobileMcpIntegration(input?: {
     connectPromise ??= (async () => {
       const executablePath = await resolvePackageBin({
         packageName: "mobile-mcp",
-        binName: "mobile-mcp",
-        cwd
+        binName: "mobile-mcp"
       });
       const transport = createTransport({
         command: nodeCommand,

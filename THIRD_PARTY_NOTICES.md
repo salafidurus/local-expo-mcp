@@ -1,21 +1,17 @@
 # Third-Party Notices
 
-This project depends on and wraps third-party packages. It does not fork their source.
-
 ## expo-mcp
 
 - Package: `expo-mcp`
-- Version: `0.2.4`
 - Upstream: `https://github.com/expo/expo-mcp`
-- License: MIT
+- License: MIT — Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
 - Usage in this project: lazily launched as a hidden child MCP after Metro is running and a dev server URL is known
 
 ## mobile-mcp
 
 - Package: `mobile-mcp`
-- Version: `0.0.7`
 - Upstream: `https://github.com/runablehq/mobile-mcp`
-- License: MIT
+- License: MIT — Copyright 2025 cloudycotton
 - Usage in this project: lazily launched as a hidden child MCP for screenshot and future device operations
 
 ## @modelcontextprotocol/sdk

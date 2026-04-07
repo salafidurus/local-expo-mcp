@@ -35,19 +35,17 @@ describe("resolvePackageBin", () => {
   it("resolves the expo-mcp bin from installed package metadata", async () => {
     const resolved = await resolvePackageBin({
       packageName: "expo-mcp",
-      binName: "expo-mcp",
-      cwd: process.cwd()
+      binName: "expo-mcp"
     });
 
-    expect(resolved.replace(/\\/g, "/")).toMatch(/node_modules\/expo-mcp\/bin\/expo-mcp\.mjs$/);
+    expect(resolved.replace(/\\/g, "/")).toMatch(/expo-mcp\/bin\/expo-mcp\.mjs$/);
   });
 
   it("uses the sole declared bin when the bin name is omitted", async () => {
     const resolved = await resolvePackageBin({
-      packageName: "mobile-mcp",
-      cwd: process.cwd()
+      packageName: "mobile-mcp"
     });
 
-    expect(resolved.replace(/\\/g, "/")).toMatch(/node_modules\/mobile-mcp\/dist\/index\.js$/);
+    expect(resolved.replace(/\\/g, "/")).toMatch(/mobile-mcp\/dist\/index\.js$/);
   });
 });

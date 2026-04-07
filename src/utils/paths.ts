@@ -11,11 +11,8 @@ type PackageJson = {
 export async function resolvePackageBin(input: {
   packageName: string;
   binName?: string;
-  cwd?: string;
 }): Promise<string> {
-  const packageJsonPath = require.resolve(`${input.packageName}/package.json`, {
-    paths: [input.cwd ?? process.cwd()]
-  });
+  const packageJsonPath = require.resolve(`${input.packageName}/package.json`);
   const packageJson = JSON.parse(
     await readFile(packageJsonPath, "utf8")
   ) as PackageJson;
