@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.5.0] - 2026-04-07
+
+### Added
+
+- streamline automated release workflow
+- robust changelog management with automatic [Unreleased] handling
+- allow manual changelog adjustments by consuming [Unreleased] section
+- improve adb device state detection and error messaging
+- use fast-xml-parser for robust mobile UI hierarchy reconstruction
+
+### Fixed
+
+- resolve double clock, missing init guards, hardcoded version, adb timestamps
+- collapse release workflow to single-pass release-on-push, no staging PR
+- use PR write token in release workflow
+- ignore closed release PRs in workflow
+- respect protected main in release workflow
+- update bun lockfile for TypeScript 6
+- resolve TypeScript errors in pre-push hooks
+- make release plan filename consistent as release-plan.json
+- distinguish between Metro ready and port occupancy conflicts
+- stream adb logcat to prevent memory pressure
+- robust Windows command spawning with proper quoting
+- implement fallback SIGKILL/taskkill for hanging processes
+- atomic LockManager cleanup and map entry deletion
+- add shebang to server.ts for npx execution
+- skip release pr creation on release merges
+
+### Changed
+
+- import session state types from app-context instead of duplicating
+- centralize normalizeProjectRoot in utils/paths, remove 10 local copies
+- guard automation-owned release files
+
 ## [0.4.0] - 2026-04-07
 
 ### Added
