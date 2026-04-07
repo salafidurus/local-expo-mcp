@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import type { ExpoMcpIntegration } from "../app-context.js";
-import { resolvePackageBin as defaultResolvePackageBin } from "../utils/paths.js";
+import { readPackageVersion, resolvePackageBin as defaultResolvePackageBin } from "../utils/paths.js";
 
 type McpClientLike = {
   connect: (transport: unknown) => Promise<void>;
@@ -39,7 +39,7 @@ export function createExpoMcpIntegration(input?: {
     (() =>
       new Client({
         name: "local-expo-mcp",
-        version: "0.1.0"
+        version: readPackageVersion()
       }) as unknown as McpClientLike);
   const createTransport =
     input?.createTransport ??

@@ -14,7 +14,7 @@ import type {
   MobileMcpIntegration
 } from "../app-context.js";
 import { createError } from "../utils/errors.js";
-import { resolvePackageBin as defaultResolvePackageBin } from "../utils/paths.js";
+import { readPackageVersion, resolvePackageBin as defaultResolvePackageBin } from "../utils/paths.js";
 
 type McpClientCallResult = {
   content?: Array<{
@@ -72,7 +72,7 @@ export function createMobileMcpIntegration(input?: {
     (() =>
       new Client({
         name: "local-expo-mcp",
-        version: "0.1.0"
+        version: readPackageVersion()
       }) as unknown as McpClientLike);
   const createTransport =
     input?.createTransport ??
@@ -113,17 +113,20 @@ export function createMobileMcpIntegration(input?: {
       return { path: normalizedScreenshotPath };
     },
     async listDevices() {
+      await ensureInitialized();
       const result = await callTool("mobile_list_devices", {});
       const devices = parseTextPayload<Array<{ id: string; platform: "android"; state: string }>>(result, "mobile_list_devices");
       return devices.map((device) => ({ ...device, source: "mobile-mcp" as const } satisfies MobileMcpDevice));
     },
     async recentLogs(input) {
+      await ensureInitialized();
       const result = await callTool("mobile_recent_logs", {
         ...(input?.limit ? { limit: input.limit } : {})
       });
       return parseTextPayload<MetroLogEntry[]>(result, "mobile_recent_logs");
     },
     async launchApp(input) {
+      await ensureInitialized();
       const result = await callTool("mobile_launch_app", {
         appId: input.appId,
         ...(input.deviceId ? { deviceId: input.deviceId } : {})
@@ -131,6 +134,7 @@ export function createMobileMcpIntegration(input?: {
       return parseTextPayload<MobileAppActionResult>(result, "mobile_launch_app");
     },
     async terminateApp(input) {
+      await ensureInitialized();
       const result = await callTool("mobile_terminate_app", {
         appId: input.appId,
         ...(input.deviceId ? { deviceId: input.deviceId } : {})
@@ -138,6 +142,7 @@ export function createMobileMcpIntegration(input?: {
       return parseTextPayload<MobileAppActionResult>(result, "mobile_terminate_app");
     },
     async foregroundApp(input) {
+      await ensureInitialized();
       const result = await callTool("mobile_foreground_app", {
         ...(input.deviceId ? { deviceId: input.deviceId } : {})
       });
@@ -301,20 +306,33 @@ function toGestureResult(
   };
 }
 
+type XmlNode = {
+  text?: string;
+  "content-desc"?: string;
+  "resource-id"?: string;
+  class?: string;
+  bounds?: string;
+  clickable?: string;
+  enabled?: string;
+  node?: XmlNode | XmlNode[];
+  [key: string]: XmlNode | XmlNode[] | string | undefined;
+};
+
 function parseUiNodes(raw: string): MobileUiNode[] {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: ""
   });
-  const jsonObj = parser.parse(raw);
+  const jsonObj = parser.parse(raw) as { hierarchy?: XmlNode } & XmlNode;
   const nodes: MobileUiNode[] = [];
 
-  function walk(obj: any) {
+  function walk(obj: unknown): void {
     if (!obj || typeof obj !== "object") {
       return;
     }
 
-    const nodeData = obj.node;
+    const xmlObj = obj as XmlNode;
+    const nodeData = xmlObj.node;
     if (nodeData) {
       const nodeArray = Array.isArray(nodeData) ? nodeData : [nodeData];
       for (const node of nodeArray) {
@@ -331,9 +349,9 @@ function parseUiNodes(raw: string): MobileUiNode[] {
       }
     }
 
-    for (const key of Object.keys(obj)) {
+    for (const key of Object.keys(xmlObj)) {
       if (key !== "node") {
-        walk(obj[key]);
+        walk(xmlObj[key]);
       }
     }
   }

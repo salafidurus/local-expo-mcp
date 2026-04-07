@@ -2,6 +2,7 @@ import type { ExpoMcpAttachment } from "../app-context.js";
 import { errorResult, okResult } from "../mcp/responses.js";
 import { createError } from "../utils/errors.js";
 import type { AppContext } from "../app-context.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
 export function createDevServerAttachHandler(context: AppContext) {
   return async function devServerAttach(input: { projectRoot: string }) {
@@ -62,6 +63,3 @@ function isHealthyAttachment(attachment?: ExpoMcpAttachment): attachment is Expo
   return attachment?.status === "attached";
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}

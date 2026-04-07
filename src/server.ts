@@ -8,6 +8,7 @@ import { createExpoMcpIntegration } from "./integrations/expo-mcp-client.js";
 import { createMobileMcpIntegration } from "./integrations/mobile-mcp-client.js";
 import { errorResult } from "./mcp/responses.js";
 import { toolSchemas } from "./mcp/schemas.js";
+import { readPackageVersion } from "./utils/paths.js";
 import { createToolRegistry } from "./mcp/tool-registry.js";
 import { toAppError } from "./utils/errors.js";
 
@@ -67,7 +68,7 @@ export function createRuntimeContext(): AppContext {
 export async function createServer(input?: { context?: AppContext }): Promise<{ server: McpServer; context: AppContext }> {
   const mcpServer = new McpServer({
     name: "local-expo-mcp",
-    version: "0.1.0"
+    version: readPackageVersion()
   });
 
   const context = input?.context ?? createRuntimeContext();

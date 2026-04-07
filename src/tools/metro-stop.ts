@@ -1,5 +1,6 @@
 import { okResult } from "../mcp/responses.js";
 import type { AppContext } from "../app-context.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
 export function createMetroStopHandler(context: AppContext) {
   return async function metroStop(input: { projectRoot: string }) {
@@ -47,6 +48,3 @@ export function createMetroStopHandler(context: AppContext) {
   };
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createAdbIntegration, parseAdbDevicesOutput } from "../../src/integrations/adb.js";
+import { createAdbIntegration, parseAdbDevicesOutput, parseAdbTimestamp } from "../../src/integrations/adb.js";
 import type { RunCommandInput, RunCommandResult } from "../../src/utils/spawn.js";
 
 describe("parseAdbDevicesOutput", () => {
@@ -19,6 +19,26 @@ describe("parseAdbDevicesOutput", () => {
       { id: "unauthorized-dev", platform: "android", state: "unauthorized", guidance: "Device unauthorized. Please accept the RSA key fingerprint prompt on your device screen." },
       { id: "recovery-dev", platform: "android", state: "recovery", guidance: "Device is in recovery mode. Please reboot the device to normal mode." }
     ]);
+  });
+});
+
+describe("parseAdbTimestamp", () => {
+  it("parses MM-DD HH:mm:ss.mmm from a logcat line", () => {
+    const ts = parseAdbTimestamp("03-22 16:00:01.500  123  456 I Tag: msg");
+    expect(ts).toBeDefined();
+
+    const d = new Date(ts!);
+    expect(d.getMonth()).toBe(2); // March = index 2
+    expect(d.getDate()).toBe(22);
+    expect(d.getHours()).toBe(16);
+    expect(d.getMinutes()).toBe(0);
+    expect(d.getSeconds()).toBe(1);
+    expect(d.getMilliseconds()).toBe(500);
+  });
+
+  it("returns undefined for lines that have no leading timestamp", () => {
+    expect(parseAdbTimestamp("--------- beginning of main")).toBeUndefined();
+    expect(parseAdbTimestamp("")).toBeUndefined();
   });
 });
 
@@ -79,18 +99,13 @@ describe("createAdbIntegration", () => {
         args: ["logcat", "-d", "-t", "2"]
       })
     );
-    expect(logs).toEqual([
-      {
-        level: "warn",
-        text: "03-22 16:00:01.000  123  456 W ReactNativeJS: Heads up",
-        at: 1700000000000
-      },
-      {
-        level: "info",
-        text: "03-22 16:00:02.000  123  456 I ReactNativeJS: Fine",
-        at: 1700000000000
-      }
-    ]);
+    expect(logs).toHaveLength(2);
+    expect(logs[0].level).toBe("warn");
+    expect(logs[0].text).toBe("03-22 16:00:01.000  123  456 W ReactNativeJS: Heads up");
+    expect(logs[1].level).toBe("info");
+    expect(logs[1].text).toBe("03-22 16:00:02.000  123  456 I ReactNativeJS: Fine");
+    // Each line gets its own parsed timestamp (1 second apart)
+    expect(logs[1].at - logs[0].at).toBe(1000);
   });
 
   it("passes -t <limit> to adb logcat if limit is provided to avoid OOM", async () => {

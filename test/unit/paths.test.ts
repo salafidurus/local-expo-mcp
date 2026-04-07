@@ -1,5 +1,35 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { resolvePackageBin } from "../../src/utils/paths.js";
+import { normalizeProjectRoot, readPackageVersion, resolvePackageBin } from "../../src/utils/paths.js";
+
+describe("normalizeProjectRoot", () => {
+  it("converts backslashes to forward slashes", () => {
+    expect(normalizeProjectRoot("C:\\dev\\app")).toBe("C:/dev/app");
+  });
+
+  it("strips a trailing slash", () => {
+    expect(normalizeProjectRoot("C:/dev/app/")).toBe("C:/dev/app");
+  });
+
+  it("strips multiple trailing slashes", () => {
+    expect(normalizeProjectRoot("C:/dev/app///")).toBe("C:/dev/app");
+  });
+
+  it("leaves a clean path unchanged", () => {
+    expect(normalizeProjectRoot("C:/dev/app")).toBe("C:/dev/app");
+  });
+});
+
+describe("readPackageVersion", () => {
+  it("returns the version from this package's package.json", async () => {
+    const packageJson = JSON.parse(
+      await readFile(path.resolve("package.json"), "utf8")
+    ) as { version: string };
+
+    expect(readPackageVersion()).toBe(packageJson.version);
+  });
+});
 
 describe("resolvePackageBin", () => {
   it("resolves the expo-mcp bin from installed package metadata", async () => {

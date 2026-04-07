@@ -1,5 +1,6 @@
 import { okResult } from "../mcp/responses.js";
 import type { AppContext } from "../app-context.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
 export function createSessionSummaryHandler(context: AppContext) {
   return async function sessionSummary(input: { projectRoot: string }) {
@@ -34,6 +35,3 @@ export function createSessionSummaryHandler(context: AppContext) {
   };
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}

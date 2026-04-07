@@ -1,30 +1,12 @@
-export type MetroSessionState = {
-  pid: number;
-  port: number;
-  devServerUrl: string;
-  startedAt: number;
-};
+import type {
+  MetroSessionState,
+  AttachedExpoMcpState,
+  AndroidRunState,
+  ProjectSessionState
+} from "../app-context.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
-export type AttachedExpoMcpState = {
-  status: "attached" | "detached" | "failed";
-  startedAt: number;
-  pid?: number;
-};
-
-export type AndroidRunState = {
-  startedAt: number;
-  status: "success" | "failed" | "running";
-  phase?: string;
-  summary?: string;
-};
-
-export type ProjectSessionState = {
-  projectRoot: string;
-  projectType?: string;
-  metro?: MetroSessionState;
-  attachedExpoMcp?: AttachedExpoMcpState;
-  lastAndroidRun?: AndroidRunState;
-};
+export type { MetroSessionState, AttachedExpoMcpState, AndroidRunState, ProjectSessionState };
 
 export class SessionStore {
   readonly #sessions = new Map<string, ProjectSessionState>();
@@ -59,8 +41,4 @@ export class SessionStore {
       lastAndroidRun: hasLastAndroidRun ? patch.lastAndroidRun : current.lastAndroidRun
     });
   }
-}
-
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
 }

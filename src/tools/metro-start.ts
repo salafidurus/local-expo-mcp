@@ -1,6 +1,7 @@
 import { okResult } from "../mcp/responses.js";
 import type { AppContext } from "../app-context.js";
 import { findAvailableTcpPort, isTcpPortAvailable } from "../utils/ports.js";
+import { normalizeProjectRoot } from "../utils/paths.js";
 
 export function createMetroStartHandler(context: AppContext) {
   return async function metroStart(input: {
@@ -33,13 +34,14 @@ export function createMetroStartHandler(context: AppContext) {
         }
       });
 
+      const startedAt = context.clock();
       context.runtime.metroControllers.set(projectRoot, controller);
       context.processStore.upsert({
         name: "metro",
         ownerKey,
         pid: controller.pid,
         cwd: projectRoot,
-        startedAt: context.clock(),
+        startedAt,
         status: "running",
         command: "expo",
         args: ["start"]
@@ -50,7 +52,7 @@ export function createMetroStartHandler(context: AppContext) {
           pid: controller.pid,
           port: controller.port,
           devServerUrl: controller.devServerUrl,
-          startedAt: context.clock()
+          startedAt
         }
       });
 
@@ -77,6 +79,3 @@ async function resolveMetroPort(requestedPort?: number): Promise<number> {
   return await findAvailableTcpPort();
 }
 
-function normalizeProjectRoot(projectRoot: string): string {
-  return projectRoot.replace(/\\/g, "/").replace(/\/+$/, "");
-}
