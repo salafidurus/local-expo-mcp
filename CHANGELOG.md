@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+
+## [0.4.0] - 2026-04-07
+
+### Added
+
+- streamline automated release workflow
+- robust changelog management with automatic [Unreleased] handling
+- allow manual changelog adjustments by consuming [Unreleased] section
+- improve adb device state detection and error messaging
+- use fast-xml-parser for robust mobile UI hierarchy reconstruction
+
+### Fixed
+
+- use PR write token in release workflow
+- ignore closed release PRs in workflow
+- respect protected main in release workflow
+- update bun lockfile for TypeScript 6
+- resolve TypeScript errors in pre-push hooks
+- make release plan filename consistent as release-plan.json
+- distinguish between Metro ready and port occupancy conflicts
+- stream adb logcat to prevent memory pressure
+- robust Windows command spawning with proper quoting
+- implement fallback SIGKILL/taskkill for hanging processes
+- atomic LockManager cleanup and map entry deletion
+- add shebang to server.ts for npx execution
+- skip release pr creation on release merges
+
+### Changed
+
+- guard automation-owned release files
+
 ## [0.3.0] - 2026-04-07
 
 ### Added
