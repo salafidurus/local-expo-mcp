@@ -4,7 +4,7 @@
   "private": false,
   "type": "module",
   "bin": {
-    "local-expo-mcp": "./dist/server.js"
+    "local-expo-mcp": "./dist/cli.js"
   },
   "files": [
     "dist",
@@ -47,7 +47,7 @@
     "test:acceptance": "bunx vitest run && bunx vitest run --config vitest.windows.config.ts && bunx vitest run --config vitest.live.config.ts && bunx vitest run --config vitest.live-windows.config.ts",
     "commitlint": "commitlint --from HEAD~1 --to HEAD",
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
-    "release:prepare-pr": "tsx scripts/create-release-pr.ts",
+    "release:do": "tsx scripts/do-release.ts",
     "release:publish": "npm publish --provenance --access public"
   },
   "dependencies": {

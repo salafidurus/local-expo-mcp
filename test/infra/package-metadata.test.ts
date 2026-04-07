@@ -18,7 +18,7 @@ describe("package metadata", () => {
     expect(packageJson.name).toBe("local-expo-mcp");
     expect(packageJson.private).toBe(false);
     expect(packageJson.bin).toEqual({
-      "local-expo-mcp": "./dist/server.js"
+      "local-expo-mcp": "./dist/cli.js"
     });
     expect(packageJson.files).toContain("dist");
     expect(packageJson.publishConfig).toEqual({
@@ -33,7 +33,7 @@ describe("package metadata", () => {
     expect(packageJson.devDependencies?.["@commitlint/cli"]).toBeDefined();
     expect(packageJson.devDependencies?.["@commitlint/config-conventional"]).toBeDefined();
     expect(packageJson.devDependencies?.husky).toBeDefined();
-    expect(packageJson.scripts?.["release:prepare-pr"]).toBe("tsx scripts/create-release-pr.ts");
+    expect(packageJson.scripts?.["release:do"]).toBe("tsx scripts/do-release.ts");
     expect(packageJson.scripts?.["release:publish"]).toBe("npm publish --provenance --access public");
     expect(packageJson.scripts?.release).toBeUndefined();
     expect(packageJson.scripts?.commitlint).toBe("commitlint --from HEAD~1 --to HEAD");

@@ -2,6 +2,13 @@
 
 This directory contains the historical and active plans for the `local-expo-mcp` project. Each plan uses YAML frontmatter to track its metadata and current status.
 
+## Plan File Naming Convention
+
+Plan files are named with a timestamp prefix for chronological ordering, followed by a descriptive slug:
+
+```YYYY-MM-DD-descriptive-slug.md
+```
+
 ## Plan Metadata
 
 Each plan file starts with a metadata block:

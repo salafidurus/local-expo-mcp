@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   analyzeReleasePlan,
+  bumpVersion,
+  readCommitsSinceTag,
   renderChangelogSection
 } from "../../scripts/release/release-plan.ts";
 
@@ -94,5 +96,27 @@ describe("release plan", () => {
     expect(section).toContain("### Breaking");
     expect(section).toContain("### Added");
     expect(section).toContain("### Fixed");
+  });
+
+  it("bumps a major version correctly", () => {
+    expect(bumpVersion("1.2.3", "major")).toBe("2.0.0");
+  });
+
+  it("bumps a minor version correctly", () => {
+    expect(bumpVersion("1.2.3", "minor")).toBe("1.3.0");
+  });
+
+  it("bumps a patch version correctly", () => {
+    expect(bumpVersion("1.2.3", "patch")).toBe("1.2.4");
+  });
+
+  it("readCommitsSinceTag returns an array of ReleaseCommit objects", () => {
+    const commits = readCommitsSinceTag();
+    expect(Array.isArray(commits)).toBe(true);
+    if (commits.length > 0) {
+      expect(typeof commits[0].hash).toBe("string");
+      expect(typeof commits[0].subject).toBe("string");
+      expect(typeof commits[0].body).toBe("string");
+    }
   });
 });

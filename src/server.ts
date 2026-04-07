@@ -165,6 +165,3 @@ async function defaultDisconnect(input: { server: ConnectedServer; context: AppC
   await disposeAppContext(input.context);
 }
 
-if (import.meta.main) {
-  void startServer();
-}

@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+
 export type ReleaseCommit = {
   hash: string;
   subject: string;
@@ -18,6 +20,36 @@ export type ReleasePlan = {
   nextVersion: string;
   notes: ReleaseNotes;
 };
+
+export function readCommitsSinceTag(): ReleaseCommit[] {
+  let ref = "";
+  try {
+    ref = execFileSync("git", ["describe", "--tags", "--abbrev=0", "--match", "v*"], {
+      encoding: "utf8"
+    }).trim();
+  } catch {
+    // No tags yet — read the full history
+  }
+
+  const range = ref ? `${ref}..HEAD` : "HEAD";
+  const raw = execFileSync(
+    "git",
+    ["log", range, "--pretty=format:%H%x1f%s%x1f%b%x1e"],
+    { encoding: "utf8" }
+  ).trim();
+
+  if (!raw) return [];
+
+  return raw.split("\x1e").flatMap(entry => {
+    const parts = entry.trim().split("\x1f");
+    if (parts.length < 2 || !parts[0]) return [];
+    return [{
+      hash: parts[0].trim(),
+      subject: parts[1].trim(),
+      body: (parts[2] ?? "").trim()
+    }];
+  });
+}
 
 export function analyzeReleasePlan(
   currentVersion: string,
@@ -116,7 +148,7 @@ export function renderChangelogSection(
   return `${lines.join("\n").trimEnd()}\n`;
 }
 
-function bumpVersion(version: string, releaseType: ReleaseType): string {
+export function bumpVersion(version: string, releaseType: ReleaseType): string {
   const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
   if (!match) {
     throw new Error(`Unsupported version format: ${version}`);
