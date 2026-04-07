@@ -15,12 +15,13 @@ describe("build output", () => {
     expect(entries).not.toContain("vitest.live.config.js");
     expect(entries).not.toContain("vitest.live.config.d.ts");
     expect(entries).toContain("server.js");
+    expect(entries).toContain("cli.js");
   });
 
-  it("dist/server.js has the correct shebang for node-based execution", async () => {
-    const serverJsPath = path.resolve("dist/server.js");
-    const content = await readFile(serverJsPath, "utf8").catch(() => {
-      throw new Error("dist/server.js is missing—please run `bun run build` before this test");
+  it("dist/cli.js has the correct shebang for node-based execution", async () => {
+    const cliJsPath = path.resolve("dist/cli.js");
+    const content = await readFile(cliJsPath, "utf8").catch(() => {
+      throw new Error("dist/cli.js is missing—please run `bun run build` before this test");
     });
 
     expect(content.startsWith("#!/usr/bin/env node")).toBe(true);
